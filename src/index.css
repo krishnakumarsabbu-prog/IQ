@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-primary: 14 23 122;
+    --color-primary-hover: 10 17 91;
+    --color-wf-red: 215 30 40;
+    --color-wf-red-hover: 170 24 32;
+    --color-wf-gold: 255 193 7;
+  }
+
+  * {
+    @apply border-gray-200;
+  }
+
+  html {
+    @apply antialiased;
+  }
+
+  body {
+    @apply bg-gray-50 text-gray-900;
+  }
+
+  .dark body {
+    @apply bg-slate-950 text-slate-100;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .bg-dot-grid {
+    background-image: radial-gradient(rgba(37, 99, 235, 0.08) 1.5px, transparent 1.5px);
+    background-size: 24px 24px;
+  }
+
+  .window-tilt {
+    transform: perspective(1500px) rotateX(10deg) rotateY(-14deg) rotateZ(-2deg);
+    transform-style: preserve-3d;
+    transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .window-tilt:hover {
+    transform: perspective(1500px) rotateX(6deg) rotateY(-8deg) rotateZ(-1deg) translateY(-8px);
+    box-shadow: 
+      -15px 35px 70px -10px rgba(37, 99, 235, 0.18),
+      -30px 60px 100px -20px rgba(15, 23, 42, 0.25);
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-6px);
+    }
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+}
