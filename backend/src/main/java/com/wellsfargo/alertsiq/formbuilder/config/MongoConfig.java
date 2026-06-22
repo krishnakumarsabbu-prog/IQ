@@ -18,6 +18,9 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 public class MongoConfig extends AbstractMongoClientConfiguration {
 
+    @Value("${mongoDBUri:}")
+    private String mongoDBUri;
+
     @Value("${mongoDBConnectionAddress}")
     private String connectionAddresses;
 
@@ -50,12 +53,33 @@ public class MongoConfig extends AbstractMongoClientConfiguration {
 
     @Override
     protected String getDatabaseName() {
+        if (mongoDBUri != null && !mongoDBUri.trim().isEmpty()) {
+            try {
+                ConnectionString connectionString = new ConnectionString(mongoDBUri);
+                if (connectionString.getDatabase() != null) {
+                    return connectionString.getDatabase();
+                }
+            } catch (Exception ignored) {}
+        }
         return databaseName;
     }
 
     @Override
     @Bean
     public MongoClient mongoClient() {
+        if (mongoDBUri != null && !mongoDBUri.trim().isEmpty()) {
+            try {
+                System.out.println("Connecting to MongoDB Atlas using URI...");
+                ConnectionString connectionString = new ConnectionString(mongoDBUri);
+                MongoClientSettings settings = MongoClientSettings.builder()
+                        .applyConnectionString(connectionString)
+                        .build();
+                return MongoClients.create(settings);
+            } catch (Exception e) {
+                System.err.println("Atlas MongoDB connection failed: " + e.getMessage());
+            }
+        }
+
         try {
             // Decrypt the password
             String decryptedPassword = encryptionService.decryptPassword(encryptedPassword);

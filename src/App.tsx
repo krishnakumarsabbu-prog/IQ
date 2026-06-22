@@ -11,13 +11,7 @@ import LegacyAlertDetails from './pages/LegacyAlertDetails';
 import LoginPage from './pages/LoginPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
-// Dynamic Form Builder Settings & Entry Pages
-import MessageTemplateBuilder from './pages/settings/MessageTemplateBuilder';
-import FieldLibrary from './pages/settings/FieldLibrary';
-import ValidationRules from './pages/settings/ValidationRules';
-import DropdownMasters from './pages/settings/DropdownMasters';
-import TemplateVersions from './pages/settings/TemplateVersions';
-import AuditHistory from './pages/settings/AuditHistory';
+import SettingsPage from './pages/settings/SettingsPage';
 import NewMessageDynamic from './pages/messages/NewMessageDynamic';
 
 const AppContent: React.FC = () => {
@@ -43,12 +37,13 @@ const AppContent: React.FC = () => {
           <Route path="/legacy-alerts/:alertId" element={<ProtectedRoute><LegacyAlertDetails /></ProtectedRoute>} />
           
           {/* Form Builder Settings Routes */}
-          <Route path="/settings/template-builder" element={<ProtectedRoute><MessageTemplateBuilder /></ProtectedRoute>} />
-          <Route path="/settings/field-library" element={<ProtectedRoute><FieldLibrary /></ProtectedRoute>} />
-          <Route path="/settings/validation-rules" element={<ProtectedRoute><ValidationRules /></ProtectedRoute>} />
-          <Route path="/settings/dropdown-masters" element={<ProtectedRoute><DropdownMasters /></ProtectedRoute>} />
-          <Route path="/settings/template-versions" element={<ProtectedRoute><TemplateVersions /></ProtectedRoute>} />
-          <Route path="/settings/audit-history" element={<ProtectedRoute><AuditHistory /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+          <Route path="/settings/template-builder" element={<Navigate to="/settings?category=messages&tab=builder" replace />} />
+          <Route path="/settings/field-library" element={<Navigate to="/settings?category=messages&tab=library" replace />} />
+          <Route path="/settings/validation-rules" element={<Navigate to="/settings?category=messages&tab=validation" replace />} />
+          <Route path="/settings/dropdown-masters" element={<Navigate to="/settings?category=messages&tab=dropdowns" replace />} />
+          <Route path="/settings/template-versions" element={<Navigate to="/settings?category=messages&tab=versions" replace />} />
+          <Route path="/settings/audit-history" element={<Navigate to="/settings?category=messages&tab=audit" replace />} />
 
           {/* Dynamic Message Creation Entry Form */}
           <Route path="/messages/new" element={<ProtectedRoute><NewMessageDynamic /></ProtectedRoute>} />

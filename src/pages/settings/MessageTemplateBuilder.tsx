@@ -40,7 +40,7 @@ const PALETTE_COMPONENTS = [
   { type: 'CodeEditor', label: 'Code Editor', icon: Code, desc: 'Vanguard script editor' }
 ];
 
-export default function MessageTemplateBuilder() {
+export default function MessageTemplateBuilder({ isEmbedded = false }: { isEmbedded?: boolean }) {
   // Master lists
   const [templates, setTemplates] = useState<MessageTemplate[]>([]);
   const [dropdownMasters, setDropdownMasters] = useState<DropdownMaster[]>([]);
@@ -690,9 +690,9 @@ export default function MessageTemplateBuilder() {
   // Current active tab object
   const activeTab = currentTemplate?.tabs.find(t => t.tabId === activeTabId) || null;
 
-  return (
-    <Layout>
-      <div className="flex flex-col gap-6 p-1 text-slate-800 dark:text-slate-100">
+  const content = (
+    <>
+      <div className={isEmbedded ? "flex flex-col gap-6 p-1 text-slate-800 dark:text-slate-100" : "flex flex-col gap-6 p-6 text-slate-800 dark:text-slate-100 min-h-screen bg-slate-900/30"}>
         {/* Header toolbar */}
         <div className="flex flex-col md:flex-row md:items-center justify-between bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-5 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] dark:shadow-none gap-4">
           <div className="flex items-center gap-3.5">
@@ -1622,6 +1622,8 @@ export default function MessageTemplateBuilder() {
           </div>
         </div>
       )}
-    </Layout>
+    </>
   );
+
+  return isEmbedded ? content : <Layout>{content}</Layout>;
 }

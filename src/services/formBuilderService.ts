@@ -1,6 +1,6 @@
 import { MessageTemplate, DropdownMaster, AuditLog, TemplateVersion, MessageInstance } from '../types/formBuilder';
 
-const BASE_URL = 'http://localhost:8080/api';
+const BASE_URL = 'http://localhost:8089/api';
 
 // Helper to check if backend is reachable
 async function isBackendReachable(): Promise<boolean> {
@@ -207,7 +207,21 @@ export const formBuilderService = {
   async getTemplates(): Promise<MessageTemplate[]> {
     if (await isBackendReachable()) {
       const response = await fetch(`${BASE_URL}/templates`);
-      return response.json();
+      const backendTemplates = await response.json();
+      if (backendTemplates.length > 0) {
+        return backendTemplates;
+      }
+      // Seed backend templates
+      const localTemplates = JSON.parse(localStorage.getItem(LS_TEMPLATES_KEY) || '[]');
+      for (const t of localTemplates) {
+        await fetch(`${BASE_URL}/templates`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(t)
+        });
+      }
+      const response2 = await fetch(`${BASE_URL}/templates`);
+      return response2.json();
     }
     return JSON.parse(localStorage.getItem(LS_TEMPLATES_KEY) || '[]');
   },
@@ -297,7 +311,21 @@ export const formBuilderService = {
   async getDropdowns(): Promise<DropdownMaster[]> {
     if (await isBackendReachable()) {
       const response = await fetch(`${BASE_URL}/masters/dropdowns`);
-      return response.json();
+      const backendDropdowns = await response.json();
+      if (backendDropdowns.length > 0) {
+        return backendDropdowns;
+      }
+      // Seed backend dropdowns
+      const localDropdowns = JSON.parse(localStorage.getItem(LS_DROPDOWNS_KEY) || '[]');
+      for (const d of localDropdowns) {
+        await fetch(`${BASE_URL}/masters/dropdowns`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(d)
+        });
+      }
+      const response2 = await fetch(`${BASE_URL}/masters/dropdowns`);
+      return response2.json();
     }
     return JSON.parse(localStorage.getItem(LS_DROPDOWNS_KEY) || '[]');
   },

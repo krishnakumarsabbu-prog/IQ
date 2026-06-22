@@ -2,7 +2,12 @@ package com.wellsfargo.alertsiq.formbuilder.service;
 
 import com.wellsfargo.alertsiq.formbuilder.entity.*;
 import com.wellsfargo.alertsiq.formbuilder.repository.*;
+import org.bson.Document;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,15 +17,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * MessageService — Three-collection dynamic persistence engine.
+ * MessageService — Dynamic flat persistence engine.
  *
- * Collections:
- *   MESSAGE_FIELDS    — flat field data keyed by mongoPropertyName
- *   MESSAGE_BOOKMARKS — fieldKey -> boolean
- *   MESSAGE_NOTES     — fieldKey -> List<Note>
- *
- * All field values come from the template schema at save time.
- * No field names are hardcoded here.
+ * Saves documents flat in the "messages" collection.
+ * No nested "fieldValues" object in the database.
+ * Bookmarks and notes remain stored in separate collections.
  */
 @Service
 public class MessageService {
@@ -34,13 +35,13 @@ public class MessageService {
     private TemplateRepository templateRepository;
 
     @Autowired
-    private MessageFieldsRepository messageFieldsRepository;
-
-    @Autowired
     private MessageBookmarksRepository messageBookmarksRepository;
 
     @Autowired
     private MessageNotesRepository messageNotesRepository;
+
+    @Autowired
+    private MongoTemplate mongoTemplate;
 
     // ─────────────────────────────────────────────────────────────────────────
     // SAVE  (create or update)
@@ -48,17 +49,6 @@ public class MessageService {
 
     /**
      * Accepts a flat Map from the frontend.
-     *
-     * Expected keys in payload:
-     *   templateId  – required, identifies the template schema to validate against
-     *   _id         – optional, present on update
-     *   _status     – optional, "Active" | "Draft" (default "Draft")
-     *   _bookmarks  – optional Map<String,Boolean>
-     *   _notes      – optional Map<String,List<Map<String,String>>>
-     *   <fieldKey>  – one entry per form field filled by the user
-     *
-     * Returns a flat Map with the same structure (fieldKey keys) for binding back
-     * into react-hook-form.
      */
     @Transactional
     public Map<String, Object> saveMessage(Map<String, Object> payload) {
@@ -81,7 +71,7 @@ public class MessageService {
             throw new ValidationException(validationErrors);
         }
 
-        // 4. Build flat field-value document keyed by mongoPropertyName
+        // 4. Build flat field-value map keyed by mongoPropertyName
         Map<String, Object> mongoValues = new LinkedHashMap<>();
         for (Template.Field field : allFields) {
             Object userValue = payload.get(field.getFieldKey());
@@ -93,37 +83,56 @@ public class MessageService {
 
         // 5. Determine if this is a create or update
         String existingId = extractString(payload, "_id");
-        String messageId;
-        Optional<MessageFields> existingFields = Optional.empty();
+        String messageId = null;
+        Document existingDoc = null;
 
         if (existingId != null && !existingId.isBlank()) {
-            existingFields = messageFieldsRepository.findById(existingId);
-            if (existingFields.isEmpty()) {
-                existingFields = messageFieldsRepository.findByMessageId(existingId);
+            existingDoc = mongoTemplate.findById(parseId(existingId), Document.class, "messages");
+            if (existingDoc == null) {
+                Query q = new Query(Criteria.where("messageId").is(existingId));
+                existingDoc = mongoTemplate.findOne(q, Document.class, "messages");
             }
         }
 
-        if (existingFields.isPresent()) {
-            // UPDATE — merge into existing document
-            MessageFields mf = existingFields.get();
-            messageId = mf.getMessageId();
-            mf.getFieldValues().putAll(mongoValues);
-            mf.setLastModified(today());
-            mf.setStatus(extractString(payload, "_status") != null ? extractString(payload, "_status") : mf.getStatus());
-            mf.setTemplateVersion(template.getVersion());
-            messageFieldsRepository.save(mf);
+        if (existingDoc != null) {
+            // UPDATE — merge into existing document at root level
+            messageId = existingDoc.getString("messageId");
+            for (Map.Entry<String, Object> entry : mongoValues.entrySet()) {
+                existingDoc.put(entry.getKey(), entry.getValue());
+            }
+            // Ensure root metadata fields are not overwritten by form values
+            existingDoc.put("messageId", messageId);
+            existingDoc.put("lastModified", today());
+            if (payload.containsKey("_status")) {
+                existingDoc.put("status", payload.get("_status"));
+            }
+            existingDoc.put("templateVersion", template.getVersion());
+            mongoTemplate.save(existingDoc, "messages");
         } else {
-            // CREATE — generate a new messageId
+            // CREATE — generate a new messageId and create flat document
             messageId = "MSG-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-            MessageFields mf = MessageFields.builder()
-                    .messageId(messageId)
-                    .templateId(templateId)
-                    .templateVersion(template.getVersion())
-                    .status(extractString(payload, "_status") != null ? extractString(payload, "_status") : "Draft")
-                    .lastModified(today())
-                    .fieldValues(mongoValues)
-                    .build();
-            messageFieldsRepository.save(mf);
+            Document newDoc = new Document();
+
+            // Add dynamic form field values first
+            for (Map.Entry<String, Object> entry : mongoValues.entrySet()) {
+                newDoc.put(entry.getKey(), entry.getValue());
+            }
+
+            // Override/set metadata on top
+            newDoc.put("messageId", messageId);
+            newDoc.put("templateId", templateId);
+            newDoc.put("templateVersion", template.getVersion());
+            newDoc.put("status", payload.containsKey("_status") ? payload.get("_status") : "Draft");
+            newDoc.put("lastModified", today());
+
+            mongoTemplate.save(newDoc, "messages");
+        }
+
+        // Align the messageId form field inside mongoValues so the response is consistent
+        for (Template.Field field : allFields) {
+            if ("messageId".equals(field.getFieldKey())) {
+                mongoValues.put(resolveMongoKey(field), messageId);
+            }
         }
 
         // 6. Save / upsert bookmarks
@@ -141,20 +150,26 @@ public class MessageService {
     // ─────────────────────────────────────────────────────────────────────────
 
     public Map<String, Object> getMessage(String id) {
-        // Try by MongoDB _id first, then by messageId
-        Optional<MessageFields> mfOpt = messageFieldsRepository.findById(id);
-        if (mfOpt.isEmpty()) {
-            mfOpt = messageFieldsRepository.findByMessageId(id);
+        Query q = new Query(new Criteria().orOperator(
+                Criteria.where("_id").is(parseId(id)),
+                Criteria.where("messageId").is(id)
+        ));
+        Document doc = mongoTemplate.findOne(q, Document.class, "messages");
+        if (doc == null) {
+            throw new IllegalArgumentException("Message not found: " + id);
         }
-        MessageFields mf = mfOpt.orElseThrow(() -> new IllegalArgumentException("Message not found: " + id));
 
-        Template template = templateRepository.findByTemplateId(mf.getTemplateId()).orElse(null);
+        String templateId = doc.getString("templateId");
+        Template template = templateRepository.findByTemplateId(templateId).orElse(null);
         List<Template.Field> allFields = collectAllFields(template);
 
-        // Reverse-map mongoPropertyName -> fieldKey
-        Map<String, Object> fieldValues = reverseMap(mf.getFieldValues(), allFields);
+        // Extract form values from the flat document
+        Map<String, Object> flatValues = extractFormValuesFromDoc(doc, allFields);
 
-        return buildFullResponse(mf, template, fieldValues);
+        // Reverse-map mongoPropertyName -> fieldKey
+        Map<String, Object> fieldValues = reverseMap(flatValues, allFields);
+
+        return buildFullResponse(doc, template, fieldValues);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -162,14 +177,18 @@ public class MessageService {
     // ─────────────────────────────────────────────────────────────────────────
 
     public List<Map<String, Object>> getAllMessages() {
-        List<MessageFields> all = messageFieldsRepository.findAllByOrderByLastModifiedDesc();
+        Query query = new Query();
+        query.with(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "lastModified"));
+        List<Document> docs = mongoTemplate.find(query, Document.class, "messages");
         List<Map<String, Object>> result = new ArrayList<>();
 
-        for (MessageFields mf : all) {
-            Template template = templateRepository.findByTemplateId(mf.getTemplateId()).orElse(null);
+        for (Document doc : docs) {
+            String templateId = doc.getString("templateId");
+            Template template = templateRepository.findByTemplateId(templateId).orElse(null);
             List<Template.Field> allFields = collectAllFields(template);
-            Map<String, Object> fieldValues = reverseMap(mf.getFieldValues(), allFields);
-            result.add(buildFullResponse(mf, template, fieldValues));
+            Map<String, Object> flatValues = extractFormValuesFromDoc(doc, allFields);
+            Map<String, Object> fieldValues = reverseMap(flatValues, allFields);
+            result.add(buildFullResponse(doc, template, fieldValues));
         }
 
         return result;
@@ -181,15 +200,18 @@ public class MessageService {
 
     @Transactional
     public void deleteMessage(String id) {
-        Optional<MessageFields> mfOpt = messageFieldsRepository.findById(id);
-        if (mfOpt.isEmpty()) {
-            mfOpt = messageFieldsRepository.findByMessageId(id);
+        Query q = new Query(new Criteria().orOperator(
+                Criteria.where("_id").is(parseId(id)),
+                Criteria.where("messageId").is(id)
+        ));
+        Document doc = mongoTemplate.findAndRemove(q, Document.class, "messages");
+        if (doc == null) {
+            throw new IllegalArgumentException("Message not found: " + id);
         }
-        MessageFields mf = mfOpt.orElseThrow(() -> new IllegalArgumentException("Message not found: " + id));
 
-        messageFieldsRepository.delete(mf);
-        messageBookmarksRepository.deleteByMessageId(mf.getMessageId());
-        messageNotesRepository.deleteByMessageId(mf.getMessageId());
+        String messageId = doc.getString("messageId");
+        messageBookmarksRepository.deleteByMessageId(messageId);
+        messageNotesRepository.deleteByMessageId(messageId);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -346,22 +368,22 @@ public class MessageService {
         return response;
     }
 
-    private Map<String, Object> buildFullResponse(MessageFields mf, Template template,
+    private Map<String, Object> buildFullResponse(Document doc, Template template,
             Map<String, Object> fieldValues) {
 
         Map<String, Object> response = new LinkedHashMap<>();
-        response.put("_id", mf.getId());
-        response.put("messageId", mf.getMessageId());
-        response.put("templateId", mf.getTemplateId());
-        response.put("templateVersion", mf.getTemplateVersion());
-        response.put("status", mf.getStatus());
-        response.put("lastModified", mf.getLastModified());
+        response.put("_id", doc.get("_id") != null ? doc.get("_id").toString() : null);
+        response.put("messageId", doc.getString("messageId"));
+        response.put("templateId", doc.getString("templateId"));
+        response.put("templateVersion", doc.getString("templateVersion"));
+        response.put("status", doc.getString("status"));
+        response.put("lastModified", doc.getString("lastModified"));
         if (template != null) {
             response.put("templateName", template.getTemplateName());
         }
         response.put("formValues", fieldValues);
 
-        addBookmarksAndNotes(mf.getMessageId(), response);
+        addBookmarksAndNotes(doc.getString("messageId"), response);
         return response;
     }
 
@@ -406,17 +428,6 @@ public class MessageService {
     }
 
     /**
-     * Build fieldKey -> mongoPropertyName lookup
-     */
-    private Map<String, String> buildFieldKeyToMongoMap(List<Template.Field> fields) {
-        Map<String, String> map = new LinkedHashMap<>();
-        for (Template.Field f : fields) {
-            map.put(f.getFieldKey(), resolveMongoKey(f));
-        }
-        return map;
-    }
-
-    /**
      * Reverse: mongoPropertyName -> fieldKey lookup
      */
     private Map<String, String> buildMongoToFieldKeyMap(List<Template.Field> fields) {
@@ -438,6 +449,31 @@ public class MessageService {
             result.put(fieldKey, e.getValue());
         }
         return result;
+    }
+
+    /**
+     * Extract form values from the flat document
+     */
+    private Map<String, Object> extractFormValuesFromDoc(Document doc, List<Template.Field> allFields) {
+        Map<String, Object> flatValues = new LinkedHashMap<>();
+        Set<String> formKeys = allFields.stream()
+                .map(this::resolveMongoKey)
+                .collect(Collectors.toSet());
+
+        for (Map.Entry<String, Object> entry : doc.entrySet()) {
+            String key = entry.getKey();
+            if (formKeys.contains(key)) {
+                flatValues.put(key, entry.getValue());
+            }
+        }
+        return flatValues;
+    }
+
+    private Object parseId(String id) {
+        if (id != null && id.length() == 24 && id.matches("^[0-9a-fA-F]{24}$")) {
+            return new ObjectId(id);
+        }
+        return id;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
