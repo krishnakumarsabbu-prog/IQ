@@ -12,7 +12,7 @@ export default function DocumentationTab() {
   const { selectedTemplateId, formValues } = useMessageFormContext();
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm p-6 space-y-6">
+    <div className="p-6 space-y-6">
       <div>
         <h3 className="text-base font-bold text-slate-800 dark:text-white">API Integration Documentation</h3>
         <p className="text-xs text-slate-400 mt-0.5">Integrate this dynamic message into your upstream microservices using REST endpoints.</p>

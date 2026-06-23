@@ -23,7 +23,7 @@ const CHECKLIST = [
 
 export default function ProjectStatusTab() {
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm p-6 space-y-6">
+    <div className="p-6 space-y-6">
       <div>
         <h3 className="text-base font-bold text-slate-800 dark:text-white">Project Status & compliance checklist</h3>
         <p className="text-xs text-slate-400 mt-0.5">Ensure this campaign conforms to regulatory standards prior to production activation.</p>

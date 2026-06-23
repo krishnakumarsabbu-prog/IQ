@@ -38,6 +38,7 @@ export interface MessageFormState {
   // Messages
   messages: MessageInstance[];
   selectedMessage: MessageInstance | null;
+  isEditingExistingMessage: boolean;
   filteredMessages: MessageInstance[];
   handleNewMessage: () => Promise<void>;
   handleEditMessage: (msg: MessageInstance) => void;
@@ -84,6 +85,7 @@ export interface MessageFormState {
   control: ReturnType<typeof useForm>['control'];
   formValues: Record<string, any>;
   setValue: ReturnType<typeof useForm>['setValue'];
+  reset: ReturnType<typeof useForm>['reset'];
   errors: Record<string, any>;
 
   // Rule engine
@@ -93,6 +95,7 @@ export interface MessageFormState {
 
   // Submit handler
   onSubmit: (data: any) => Promise<void>;
+  onSubmitAsNew: (data: any) => Promise<void>;
 }
 
 export type MainTab = 'Requirements' | 'Content' | 'Deploy' | 'Project Status' | 'Documentation';
@@ -120,6 +123,7 @@ export function useMessageForm(): MessageFormState {
   const [currentTemplate, setCurrentTemplate] = useState<MessageTemplate | null>(null);
   const [messages, setMessages] = useState<MessageInstance[]>([]);
   const [selectedMessage, setSelectedMessage] = useState<MessageInstance | null>(null);
+  const [isEditingExistingMessage, setIsEditingExistingMessage] = useState(false);
 
   // ── Tabs ──
   const [activeMainTab, setActiveMainTab] = useState<MainTab>('Requirements');
@@ -331,6 +335,7 @@ export function useMessageForm(): MessageFormState {
     try {
       const saved = await formBuilderService.saveMessage(tempMsg);
       setSelectedMessage(saved);
+      setIsEditingExistingMessage(false);
       setBookmarks(saved.bookmarks || {});
       setNotes(saved.notes || {});
       setActiveHelp({});
@@ -341,6 +346,7 @@ export function useMessageForm(): MessageFormState {
     } catch (e) {
       console.error('Failed to create draft in DB, falling back to local:', e);
       setSelectedMessage(null);
+      setIsEditingExistingMessage(false);
       setBookmarks({});
       setNotes({});
       setActiveHelp({});
@@ -356,6 +362,7 @@ export function useMessageForm(): MessageFormState {
 
   const handleEditMessage = useCallback((msg: MessageInstance) => {
     setSelectedMessage(msg);
+    setIsEditingExistingMessage(true);
     setBookmarks(msg.bookmarks || {});
     setNotes(msg.notes || {});
     setActiveHelp({});
@@ -411,6 +418,44 @@ export function useMessageForm(): MessageFormState {
     setActiveHelp({});
     setView('list');
   }, [selectedMessage, messages.length, selectedTemplateId, bookmarks, notes]);
+
+  const onSubmitAsNew = useCallback(async (data: any) => {
+    let finalMsgId = data.messageId || `MSG-${String(messages.length + 1).padStart(3, '0')}`;
+    const exists = messages.some(m => m.messageId === finalMsgId);
+    if (exists) {
+      finalMsgId = `${finalMsgId}-COPY`;
+    }
+
+    const newMsg: MessageInstance = {
+      messageId: finalMsgId,
+      messageName: data.messageName ? `${data.messageName} (Copy)` : 'Unnamed Message',
+      messageType: data.messageType || 'Shell',
+      channels: data.messageType === 'Shell' ? ['Email', 'SMS'] : ['Email'],
+      status: 'Draft',
+      lastModified: new Date().toISOString().split('T')[0],
+      templateId: selectedTemplateId,
+      formValues: {
+        ...data,
+        messageId: finalMsgId,
+        messageName: data.messageName ? `${data.messageName} (Copy)` : 'Unnamed Message',
+      },
+      bookmarks: {},
+      notes: {},
+    };
+
+    try {
+      const saved = await formBuilderService.saveMessage(newMsg);
+      setMessages(prev => [saved, ...prev]);
+    } catch (e) {
+      console.error('Failed to save new message:', e);
+    }
+
+    setSelectedMessage(null);
+    setBookmarks({});
+    setNotes({});
+    setActiveHelp({});
+    setView('list');
+  }, [messages, selectedTemplateId]);
 
   // ── Rule engine ──
 
@@ -506,7 +551,7 @@ export function useMessageForm(): MessageFormState {
     view, setView,
     searchQuery, setSearchQuery,
     templates, selectedTemplateId, currentTemplate, handleTemplateChange,
-    messages, selectedMessage, filteredMessages,
+    messages, selectedMessage, isEditingExistingMessage, filteredMessages,
     handleNewMessage, handleEditMessage, handleDeleteMessage,
     activeMainTab, setActiveMainTab,
     activeSubTabId, setActiveSubTabId, activeSubTab,
@@ -518,8 +563,8 @@ export function useMessageForm(): MessageFormState {
     newNoteText, setNewNoteText,
     activeHelp, handleToggleHelp,
     previewDevice, setPreviewDevice,
-    register, handleSubmit, control, formValues, setValue, errors,
+    register, handleSubmit, control, formValues, setValue, errors, reset,
     getFieldState, getValidationRules, getTabBadgeCount,
-    onSubmit,
+    onSubmit, onSubmitAsNew,
   };
 }

@@ -13,7 +13,7 @@ export default function ContentTab() {
   const { formValues, previewDevice, setPreviewDevice } = useMessageFormContext();
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm p-6 space-y-6">
+    <div className="p-6 space-y-6">
       <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
         <div>
           <h3 className="text-base font-bold text-slate-850 dark:text-white">Email Layout Engine</h3>
