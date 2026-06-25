@@ -1,123 +1,125 @@
 /**
  * ContentTab.tsx
  * ──────────────
- * Live email preview workspace — renders a simulated email client
- * with real-time variable interpolation from formValues.
+ * Root orchestrator for the two-panel Content Builder layout.
+ *
+ * Pixel-perfect layout:
+ *   ┌──────────────────────────────────────────────────────────────┐
+ *   │  WHITE:  [Create FR]  [↑ Export]  [💾 Save]   (right-align) │
+ *   ├──────────────────────┬───────────────────────────────────────┤
+ *   │ GRAY: |CONTENT BLDR  │ GRAY: |LIVE PREVIEW [Retail▾][Cust▾][↺]│
+ *   ├──────────────────────┼───────────────────────────────────────┤
+ *   │  Brand bar           │                                       │
+ *   │ |COMPONENTS  B I {} ▾│         Email preview card            │
+ *   │  row 1               │                                       │
+ *   │  row 2               │                                       │
+ *   │  [+ Add Component]   │                                       │
+ *   └──────────────────────┴───────────────────────────────────────┘
  */
 
 import React from 'react';
-import { Monitor, Smartphone } from 'lucide-react';
-import { useMessageFormContext } from './useMessageForm';
+import { Download, Save, FileText } from 'lucide-react';
+import { useContentBuilder, ContentBuilderContext } from './contentBuilder/useContentBuilder';
+import ContentBuilderPanel from './contentBuilder/ContentBuilderPanel';
+import LivePreview from './contentBuilder/LivePreview';
 
-export default function ContentTab() {
-  const { formValues, previewDevice, setPreviewDevice } = useMessageFormContext();
+// ── Action bar — pure white, visually separated from the gray panel headers ───
+
+function ContentActionBar() {
+  const { components } = React.useContext(ContentBuilderContext)!;
+
+  const handleExport = () => {
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      components: components.map(c => ({
+        kind: c.kind, label: c.label, text: c.text, url: c.url, order: c.order,
+      })),
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `content_template_${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
-        <div>
-          <h3 className="text-base font-bold text-slate-850 dark:text-white">Email Layout Engine</h3>
-          <p className="text-xs text-slate-400">Preview how variables interpolate inside the HTML shell in real time.</p>
-        </div>
-        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl gap-1">
-          <button
-            onClick={() => setPreviewDevice('desktop')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all ${
-              previewDevice === 'desktop' ? 'bg-white dark:bg-slate-900 shadow-sm text-blue-600' : 'text-slate-400'
-            }`}
-          >
-            <Monitor className="h-3.5 w-3.5" /> Desktop
-          </button>
-          <button
-            onClick={() => setPreviewDevice('mobile')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all ${
-              previewDevice === 'mobile' ? 'bg-white dark:bg-slate-900 shadow-sm text-blue-600' : 'text-slate-400'
-            }`}
-          >
-            <Smartphone className="h-3.5 w-3.5" /> Mobile
-          </button>
-        </div>
-      </div>
+    /* ⬇ bg-white — NOT bg-slate-100, so it visually separates from the gray panel header bar below */
+    <div className="flex items-center justify-end gap-2 px-4 py-2.5
+      bg-white dark:bg-slate-950
+      border-b border-slate-200 dark:border-slate-800/80">
 
-      {/* Simulated email client viewport */}
-      <div className="bg-slate-50 dark:bg-slate-950 p-6 rounded-2xl flex justify-center border border-slate-200/50 dark:border-slate-900">
-        <div
-          className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 shadow-md transition-all duration-300 rounded-xl overflow-hidden ${
-            previewDevice === 'desktop' ? 'w-full' : 'w-80'
-          }`}
-        >
-          {/* Email header mock bar */}
-          <div className="bg-slate-100 dark:bg-slate-800 px-4 py-3 border-b border-slate-200 dark:border-slate-700/80 flex items-center gap-2 text-xxs text-slate-500 font-mono">
-            <span className="font-bold text-slate-400">FROM:</span>
-            <span className="text-slate-600 dark:text-slate-350">wells-fargo-alerts@wellsfargo.com</span>
-            <span className="font-bold text-slate-400 ml-4">SUBJECT:</span>
-            <span className="text-blue-600 dark:text-blue-400 truncate">
-              {formValues.messageName || 'Welcome Onboarding Campaign'}
-            </span>
-          </div>
+      <button type="button"
+        className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold rounded-lg
+          border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900
+          text-slate-600 dark:text-slate-300
+          hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-300
+          transition-all duration-150 shadow-sm">
+        <FileText className="h-3.5 w-3.5 text-slate-400" />
+        Create FR
+      </button>
 
-          {/* Corporate header */}
-          <div
-            className={`p-4 flex items-center justify-between border-b-4 ${
-              formValues.newBranding === true && formValues.colorScheme === 'Corporate Slate'
-                ? 'bg-slate-700 border-slate-500'
-                : formValues.newBranding === true && formValues.colorScheme === 'Emerald Safe'
-                ? 'bg-emerald-800 border-emerald-600'
-                : 'bg-red-700 border-yellow-500'
-            } text-white`}
-          >
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded bg-white/10 flex items-center justify-center font-bold text-lg text-white">
-                W
-              </div>
-              <span className="font-bold text-sm tracking-wide">WELLS FARGO</span>
-            </div>
-            <span className="text-[10px] bg-white/25 px-2 py-0.5 rounded font-semibold uppercase tracking-wider">
-              {formValues.messageType || 'Shell'} Alert
-            </span>
-          </div>
+      <button type="button" onClick={handleExport}
+        className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold rounded-lg
+          border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900
+          text-slate-600 dark:text-slate-300
+          hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-300
+          transition-all duration-150 shadow-sm">
+        <Download className="h-3.5 w-3.5 text-slate-400" />
+        Export
+      </button>
 
-          {/* HTML body preview */}
-          <div className="p-8 space-y-6 text-xs text-slate-700 dark:text-slate-300">
-            <p className="font-bold text-slate-900 dark:text-white">Dear Wells Fargo Customer,</p>
-            <p className="leading-relaxed">
-              {formValues.description || 'Welcome notification for retail customers onboarding to retail alerts.'}
-            </p>
-
-            <div className="bg-slate-50 dark:bg-slate-950 p-4.5 rounded-xl border border-slate-100 dark:border-slate-800 text-[11px] font-medium space-y-1.5">
-              <p className="text-slate-500">Alert Operational Identifiers:</p>
-              <ul className="list-disc pl-5 space-y-1 text-slate-600 dark:text-slate-400 font-mono">
-                <li>Message ID: <strong className="text-slate-800 dark:text-slate-200">{formValues.messageId || 'MSG-001'}</strong></li>
-                <li>Routing Priority: <strong className="text-slate-800 dark:text-slate-200">{formValues.priority || 'Medium'}</strong></li>
-                <li>Originating LOB: <strong className="text-slate-800 dark:text-slate-200">{formValues.businessUnit || 'Retail Banking'}</strong></li>
-              </ul>
-            </div>
-
-            <div className="flex justify-center pt-2">
-              <a
-                href={formValues.ctaLink || 'https://online.wellsfargo.com'}
-                target="_blank"
-                rel="noreferrer"
-                className={`px-5 py-2.5 text-xs font-semibold rounded-lg text-white shadow-sm inline-block transition-all ${
-                  formValues.newBranding === true && formValues.colorScheme === 'Corporate Slate'
-                    ? 'bg-slate-700 hover:bg-slate-850'
-                    : formValues.newBranding === true && formValues.colorScheme === 'Emerald Safe'
-                    ? 'bg-emerald-800 hover:bg-emerald-900'
-                    : 'bg-blue-600 hover:bg-blue-700'
-                }`}
-              >
-                Access Account Portal
-              </a>
-            </div>
-          </div>
-
-          {/* Compliance footer */}
-          <div className="bg-slate-50 dark:bg-slate-950 p-5 border-t border-slate-100 dark:border-slate-850/80 text-[10px] text-slate-400 dark:text-slate-500 leading-relaxed text-center">
-            <p>© 2026 Wells Fargo & Co. All rights reserved. Member FDIC.</p>
-            <p className="mt-1">This is an automated notification. To manage your delivery channels, log into secure portal.</p>
-          </div>
-        </div>
-      </div>
+      <button type="button"
+        className="flex items-center gap-1.5 px-4 py-1.5 text-[11px] font-bold rounded-lg
+          bg-blue-600 hover:bg-blue-500 active:bg-blue-700
+          text-white transition-all duration-150 shadow-sm shadow-blue-600/30">
+        <Save className="h-3.5 w-3.5" />
+        Save
+      </button>
     </div>
+  );
+}
+
+// ── Root ───────────────────────────────────────────────────────────────────────
+
+export default function ContentTab() {
+  const contentBuilderState = useContentBuilder();
+
+  return (
+    <ContentBuilderContext.Provider value={contentBuilderState}>
+      {/*
+        Height: fill the remaining viewport after the page chrome.
+        Using a CSS variable approach with flex-col ensures the panels
+        fill equally without overflow.
+      */}
+      <div className="flex flex-col" style={{ height: 'calc(100vh - 176px)', minHeight: 480 }}>
+
+        {/* ── Action bar (white bg) ── */}
+        <ContentActionBar />
+
+        {/*
+          ── Two-panel grid ──
+          CSS grid with fixed columns ensures both panels are ALWAYS the same height.
+          The gray header bars inside each panel are part of the panel, not a shared row,
+          so they naturally align when both panels are the same height.
+        */}
+        <div
+          className="flex-1 min-h-0 grid"
+          style={{ gridTemplateColumns: '55fr 45fr' }}
+        >
+          {/* LEFT — Content Builder */}
+          <div className="flex flex-col min-h-0 border-r border-slate-200 dark:border-slate-800">
+            <ContentBuilderPanel />
+          </div>
+
+          {/* RIGHT — Live Preview */}
+          <div className="flex flex-col min-h-0">
+            <LivePreview />
+          </div>
+        </div>
+
+      </div>
+    </ContentBuilderContext.Provider>
   );
 }

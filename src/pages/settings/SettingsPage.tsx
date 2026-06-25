@@ -4,7 +4,7 @@ import {
   Settings, Mail, Sliders, ShieldAlert, 
   Database, ListChecks, GitCommit, History, Layers,
   Check, Save, Terminal, Lock,
-  PanelLeftClose, PanelLeftOpen
+  PanelLeftClose, PanelLeftOpen, Package,
 } from 'lucide-react';
 import Layout from '../../components/Layout';
 
@@ -15,6 +15,7 @@ import ValidationRules from './ValidationRules';
 import DropdownMasters from './DropdownMasters';
 import TemplateVersions from './TemplateVersions';
 import AuditHistory from './AuditHistory';
+import ComponentLibrarySettings from './ComponentLibrarySettings';
 
 export default function SettingsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -53,12 +54,13 @@ export default function SettingsPage() {
 
   // Horizontal tabs config for Messages Category
   const messageTabs = [
-    { id: 'builder', label: 'Template Builder', icon: Layers },
-    { id: 'library', label: 'Field Library', icon: Database },
-    { id: 'validation', label: 'Validation Rules', icon: ListChecks },
-    { id: 'dropdowns', label: 'Dropdown Masters', icon: Database },
-    { id: 'versions', label: 'Template Versions', icon: GitCommit },
-    { id: 'audit', label: 'Audit History', icon: History }
+    { id: 'builder',    label: 'Template Builder',    icon: Layers },
+    { id: 'library',    label: 'Field Library',        icon: Database },
+    { id: 'validation', label: 'Validation Rules',     icon: ListChecks },
+    { id: 'dropdowns',  label: 'Dropdown Masters',     icon: Database },
+    { id: 'versions',   label: 'Template Versions',    icon: GitCommit },
+    { id: 'audit',      label: 'Audit History',        icon: History },
+    { id: 'components', label: 'Components',           icon: Package },
   ];
 
   return (
@@ -199,12 +201,13 @@ export default function SettingsPage() {
 
                 {/* Inner component renderer */}
                 <div className="bg-white dark:bg-slate-900/25 border border-slate-200/60 dark:border-slate-800 p-4 rounded-2xl shadow-sm dark:shadow-none">
-                  {activeMessageTab === 'builder' && <MessageTemplateBuilder isEmbedded={true} />}
-                  {activeMessageTab === 'library' && <FieldLibrary isEmbedded={true} />}
+                  {activeMessageTab === 'builder'    && <MessageTemplateBuilder isEmbedded={true} />}
+                  {activeMessageTab === 'library'    && <FieldLibrary isEmbedded={true} />}
                   {activeMessageTab === 'validation' && <ValidationRules isEmbedded={true} />}
-                  {activeMessageTab === 'dropdowns' && <DropdownMasters isEmbedded={true} />}
-                  {activeMessageTab === 'versions' && <TemplateVersions isEmbedded={true} />}
-                  {activeMessageTab === 'audit' && <AuditHistory isEmbedded={true} />}
+                  {activeMessageTab === 'dropdowns'  && <DropdownMasters isEmbedded={true} />}
+                  {activeMessageTab === 'versions'   && <TemplateVersions isEmbedded={true} />}
+                  {activeMessageTab === 'audit'      && <AuditHistory isEmbedded={true} />}
+                  {activeMessageTab === 'components' && <ComponentLibrarySettings isEmbedded={true} />}
                 </div>
 
               </div>
