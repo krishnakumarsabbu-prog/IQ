@@ -6,7 +6,7 @@
  *  • header bars bg-slate-100 (gray), rest bg-white — visually separated
  */
 
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   GripVertical, Trash2, Plus, Link, Image,
   Upload, ChevronDown, ChevronUp, Copy,
@@ -83,17 +83,10 @@ function PlaceholderPopup({ anchor, onClose }: { anchor: HTMLElement; onClose: (
             </button>
           ))}
         </div>
-        {!selectedComponentId && (
-          <p className="px-4 py-2 text-[10px] text-slate-400 italic border-t border-slate-100 dark:border-slate-800 mt-1">
-            Select a component row first
-          </p>
-        )}
       </div>
     </>
   );
 }
-
-// ── Single canvas row ─────────────────────────────────────────────────────────
 
 interface CanvasRowProps {
   comp: CanvasComponent;
@@ -114,10 +107,17 @@ function CanvasRow({
   const { removeComponent, moveComponent, duplicateComponent, updateComponent, componentDefs } =
     useContentBuilderContext();
 
-  const [editText, setEditText] = useState(false);
-  const [editUrl,  setEditUrl]  = useState(false);
   const [showKind, setShowKind] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isSelected && textareaRef.current) {
+      textareaRef.current.focus();
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+    }
+  }, [isSelected]);
 
   const hasUrl  = ['cta', 'link', 'quickaction'].includes(comp.kind);
   const isFirst = index === 0;
@@ -151,30 +151,31 @@ function CanvasRow({
         <div className="absolute inset-0 rounded-xl bg-indigo-500/[0.03] dark:bg-indigo-400/[0.05] pointer-events-none" />
       )}
 
-      {/* ── Main content row ── */}
-      <div className="flex items-center gap-2 px-2.5 py-2">
+      {/* ── Main content grid layout ── */}
+      <div className="grid grid-cols-[auto_128px_4px_1fr_auto] items-center gap-x-3 gap-y-2.5 p-3">
 
-        {/* Drag handle */}
-        <GripVertical className="h-3.5 w-3.5 text-slate-300 dark:text-slate-700 flex-shrink-0
-          cursor-grab active:cursor-grabbing hover:text-slate-400 transition-colors" />
-
-        {/* Number badge */}
-        <div className={`w-5 h-5 rounded-full flex items-center justify-center
-          text-[9px] font-black text-white flex-shrink-0 ring-2 ${kc.bg} ${kc.ring}`}>
-          {index + 1}
+        {/* Row 1 Col 1: Drag handle + badge */}
+        <div className="flex items-center gap-3">
+          <GripVertical className="h-3.5 w-3.5 text-slate-400 dark:text-slate-600 flex-shrink-0
+            cursor-grab active:cursor-grabbing hover:text-slate-505 transition-colors" />
+          <div className={`w-[22px] h-[22px] rounded-full flex items-center justify-center
+            text-[10px] font-bold text-white flex-shrink-0 ring-2 ${kc.bg} ${kc.ring}`}>
+            {index + 1}
+          </div>
         </div>
 
-        {/* Kind pill dropdown */}
-        <div className="relative flex-shrink-0">
+        {/* Row 1 Col 2: Kind dropdown (same fixed width for alignment) */}
+        <div className="relative">
           <button
             type="button"
             onClick={e => { e.stopPropagation(); setShowKind(v => !v); }}
-            className="flex items-center gap-1 text-[10px] font-bold text-slate-600 dark:text-slate-300
-              bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700
-              px-2 py-0.5 rounded-full border border-slate-200/60 dark:border-slate-700/60
-              transition-all duration-100 whitespace-nowrap">
-            {comp.label}
-            <ChevronDown className="h-2.5 w-2.5 text-slate-400" />
+            className="flex items-center justify-between gap-1.5 text-xs font-bold text-slate-750 dark:text-slate-300
+              bg-slate-100/80 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700
+              px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700
+              transition-all duration-100 w-32 flex-shrink-0"
+          >
+            <span className="truncate">{comp.label}</span>
+            <ChevronDown className="h-3 w-3 text-slate-505 flex-shrink-0" />
           </button>
 
           {showKind && (
@@ -205,61 +206,69 @@ function CanvasRow({
           )}
         </div>
 
-        {/* ── Inline text: textarea for full word-selection support ── */}
-        {editText ? (
-          <textarea
-            ref={textareaRef}
-            autoFocus
-            rows={1}
-            className="flex-1 text-xs text-slate-700 dark:text-slate-200 bg-transparent
-              border-b border-indigo-400 outline-none resize-none leading-5 min-w-0
-              placeholder-slate-300 dark:placeholder-slate-700 py-0"
-            value={comp.text}
-            onChange={e => {
-              updateComponent(comp.id, { text: e.target.value });
-              // auto-grow
-              e.target.style.height = 'auto';
-              e.target.style.height = e.target.scrollHeight + 'px';
-            }}
-            onBlur={() => setEditText(false)}
-            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); setEditText(false); }}}
-            onClick={e => e.stopPropagation()}
-          />
-        ) : (
-          <span
-            className="flex-1 text-xs text-slate-600 dark:text-slate-400 truncate min-w-0
-              hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
-            title="Double-click to edit"
-            onDoubleClick={e => {
-              e.stopPropagation();
-              setEditText(true);
-              setTimeout(() => {
-                if (textareaRef.current) {
-                  textareaRef.current.focus();
-                  textareaRef.current.select();
-                }
-              }, 10);
-            }}
-          >
-            {comp.text || (
-              <span className="italic text-slate-300 dark:text-slate-700">
-                Double-click to edit…
-              </span>
-            )}
-          </span>
-        )}
+        {/* Row 1 Col 3: empty spacer */}
+        <div />
 
-        {/* ── Action toolbar: move ↑↓ / copy / delete ── */}
+        {/* Row 1 Col 4: Top input box / select dropdown */}
+        <div className="flex-1 min-h-0 border border-slate-200 dark:border-slate-800/80
+          bg-slate-50/45 dark:bg-slate-900/45 rounded-lg px-3 py-1.5
+          hover:border-slate-300 dark:hover:border-slate-750 transition-colors flex items-center min-w-0">
+          {comp.kind === 'cta' ? (
+            <select
+              value={comp.text || 'Go to account'}
+              onChange={e => updateComponent(comp.id, { text: e.target.value })}
+              onClick={e => e.stopPropagation()}
+              className="flex-1 text-xs text-slate-750 dark:text-slate-200 bg-transparent
+                outline-none border-none py-0 w-full cursor-pointer font-semibold"
+            >
+              {['Go to account', 'View Details', 'Quick Pay', 'Sign In', 'Register Now', 'Learn More'].map(opt => (
+                <option key={opt} value={opt} className="bg-white dark:bg-slate-900 text-slate-755">
+                  {opt}
+                </option>
+              ))}
+            </select>
+          ) : isSelected ? (
+            <textarea
+              ref={textareaRef}
+              rows={1}
+              data-comp-id={comp.id}
+              className="flex-1 text-xs text-slate-750 dark:text-slate-200 bg-transparent
+                outline-none resize-none leading-5 min-w-0
+                placeholder-slate-300 dark:placeholder-slate-700 py-0"
+              value={comp.text}
+              onChange={e => {
+                updateComponent(comp.id, { text: e.target.value });
+                // auto-grow
+                e.target.style.height = 'auto';
+                e.target.style.height = e.target.scrollHeight + 'px';
+              }}
+              onClick={e => e.stopPropagation()}
+            />
+          ) : (
+            <span
+              className="flex-1 text-xs text-slate-750 dark:text-slate-400 truncate min-w-0
+                hover:text-slate-800 dark:hover:text-slate-200 transition-colors cursor-text"
+              title="Click to edit"
+            >
+              {comp.text || (
+                <span className="italic text-slate-300 dark:text-slate-700">
+                  Click to edit…
+                </span>
+              )}
+            </span>
+          )}
+        </div>
+
+        {/* Row 1 Col 5: Actions toolbar */}
         <div
-          className={`flex items-center gap-0.5 flex-shrink-0 transition-all duration-150
-            ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+          className="flex items-center gap-0.5 flex-shrink-0 transition-all duration-150 opacity-100"
           onClick={e => e.stopPropagation()}
         >
           <button type="button" title="Move up" disabled={isFirst}
             onClick={() => moveComponent(comp.id, 'up')}
             className="w-6 h-6 flex items-center justify-center rounded-lg
               hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400
-              hover:text-slate-600 dark:hover:text-slate-200 transition-colors
+              hover:text-slate-655 dark:hover:text-slate-200 transition-colors
               disabled:opacity-25 disabled:cursor-not-allowed">
             <ChevronUp className="h-3 w-3" />
           </button>
@@ -268,7 +277,7 @@ function CanvasRow({
             onClick={() => moveComponent(comp.id, 'down')}
             className="w-6 h-6 flex items-center justify-center rounded-lg
               hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400
-              hover:text-slate-600 dark:hover:text-slate-200 transition-colors
+              hover:text-slate-655 dark:hover:text-slate-200 transition-colors
               disabled:opacity-25 disabled:cursor-not-allowed">
             <ChevronDown className="h-3 w-3" />
           </button>
@@ -289,39 +298,76 @@ function CanvasRow({
             <Trash2 className="h-3 w-3" />
           </button>
         </div>
-      </div>
 
-      {/* ── URL sub-row ── */}
-      {hasUrl && (
-        <div
-          className="flex items-center gap-2 pl-10 pr-3 pb-2"
-          onClick={e => e.stopPropagation()}
-        >
-          <Link className="h-3 w-3 text-indigo-400 flex-shrink-0" />
-          {editUrl ? (
-            <input
-              autoFocus type="url"
-              className="flex-1 text-[11px] font-mono text-slate-500 dark:text-slate-400
-                bg-transparent border-b border-indigo-400 outline-none pb-0.5 min-w-0"
-              value={comp.url ?? ''}
-              onChange={e => updateComponent(comp.id, { url: e.target.value })}
-              onBlur={() => setEditUrl(false)}
-              onKeyDown={e => { if (e.key === 'Enter') setEditUrl(false); }}
-            />
-          ) : (
-            <span
-              className="flex-1 text-[11px] font-mono text-slate-400 dark:text-slate-500 truncate
-                cursor-text hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors"
-              onDoubleClick={() => setEditUrl(true)}
-              title={comp.url ?? ''}
-            >
-              {comp.url || (
-                <span className="italic text-slate-300 dark:text-slate-700">https://… (double-click to edit)</span>
+        {/* Row 2 (if hasUrl like cta/link/quickaction) */}
+        {hasUrl && (
+          <>
+            <div />
+            <div className="flex justify-end pr-2 text-indigo-405">
+              <Link className="h-3.5 w-3.5" />
+            </div>
+            <div />
+            <div className="border border-slate-200 dark:border-slate-800/80
+              bg-slate-50/45 dark:bg-slate-900/45 rounded-lg px-3 py-1.5
+              hover:border-slate-300 dark:hover:border-slate-750 transition-colors flex items-center min-w-0">
+              <input
+                type="url"
+                className="flex-1 text-xs text-slate-750 dark:text-slate-200 bg-transparent
+                  outline-none border-none py-0 min-w-0"
+                placeholder="https://..."
+                value={comp.url ?? ''}
+                onChange={e => updateComponent(comp.id, { url: e.target.value })}
+                onClick={e => e.stopPropagation()}
+              />
+            </div>
+            <div />
+          </>
+        )}
+
+        {/* Row 2 (if image or banner component) */}
+        {(comp.kind === 'image' || comp.kind === 'banner') && (
+          <>
+            <div />
+            <div className="flex justify-end pr-2 text-pink-405">
+              <Image className="h-3.5 w-3.5" />
+            </div>
+            <div />
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={e => { e.stopPropagation(); imageInputRef.current?.click(); }}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold
+                  text-indigo-650 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/60
+                  rounded-lg transition-colors cursor-pointer"
+              >
+                <Upload className="h-3 w-3" />
+                Browse Image
+              </button>
+              <input
+                type="file"
+                ref={imageInputRef}
+                accept="image/*"
+                className="hidden"
+                onChange={e => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const url = URL.createObjectURL(file);
+                    updateComponent(comp.id, { url });
+                  }
+                }}
+              />
+              {comp.url && (
+                <img
+                  src={comp.url}
+                  alt={comp.text || "Preview"}
+                  className="h-8 object-contain rounded border border-slate-200 bg-white p-0.5"
+                />
               )}
-            </span>
-          )}
-        </div>
-      )}
+            </div>
+            <div />
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -401,10 +447,39 @@ function CanvasToolbar({ onPlaceholder }: { onPlaceholder: (btn: HTMLButtonEleme
   const { selectedComponentId, updateComponent, components } = useContentBuilderContext();
 
   const wrap = (tag: string) => {
-    if (!selectedComponentId) return;
-    const c = components.find(x => x.id === selectedComponentId);
-    if (!c) return;
-    updateComponent(selectedComponentId, { text: `<${tag}>${c.text}</${tag}>` });
+    // Find the active focused textarea in the document
+    const textarea = document.activeElement as HTMLTextAreaElement;
+    if (textarea && textarea.tagName === 'TEXTAREA') {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const val = textarea.value;
+      const before = val.substring(0, start);
+      const sel = val.substring(start, end);
+      const after = val.substring(end);
+
+      const tagOpen = `<${tag}>`;
+      const tagClose = `</${tag}>`;
+      const placeholderText = tag === 'strong' ? 'bold' : tag === 'em' ? 'italic' : 'code';
+      const wrapped = `${tagOpen}${sel || placeholderText}${tagClose}`;
+      const newVal = before + wrapped + after;
+
+      const compId = textarea.getAttribute('data-comp-id');
+      if (compId) {
+        updateComponent(compId, { text: newVal });
+        // Refocus and set selection range after updating DOM
+        setTimeout(() => {
+          textarea.focus();
+          const newStart = start + tagOpen.length;
+          const newEnd = newStart + (sel || placeholderText).length;
+          textarea.setSelectionRange(newStart, newEnd);
+        }, 50);
+      }
+    } else if (selectedComponentId) {
+      // Fallback: wrap entire component text if no textarea is actively focused
+      const c = components.find(x => x.id === selectedComponentId);
+      if (!c) return;
+      updateComponent(selectedComponentId, { text: `<${tag}>${c.text}</${tag}>` });
+    }
   };
 
   return (
@@ -415,6 +490,7 @@ function CanvasToolbar({ onPlaceholder }: { onPlaceholder: (btn: HTMLButtonEleme
         { label: '{}', title: 'Code',  cls: 'font-mono text-[10px]', tag: 'code' },
       ].map(b => (
         <button key={b.label} type="button" title={b.title}
+          onMouseDown={e => e.preventDefault()}
           onClick={() => wrap(b.tag)}
           className={`w-6 h-6 flex items-center justify-center rounded-lg text-[11px]
             text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700
@@ -423,6 +499,7 @@ function CanvasToolbar({ onPlaceholder }: { onPlaceholder: (btn: HTMLButtonEleme
         </button>
       ))}
       <button type="button"
+        onMouseDown={e => e.preventDefault()}
         onClick={e => onPlaceholder(e.currentTarget as HTMLButtonElement)}
         className="flex items-center gap-1 h-6 px-2 text-[10px] font-bold
           text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40
