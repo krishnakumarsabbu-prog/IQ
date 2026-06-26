@@ -259,7 +259,7 @@ export default function LivePreview() {
       {/* ── Preview viewport ── */}
       <div
         className="flex-1 min-h-0 overflow-y-auto p-5
-        bg-white dark:bg-slate-950"
+        bg-slate-100/50 dark:bg-slate-950/60"
       >
         {/* Email card */}
         <div

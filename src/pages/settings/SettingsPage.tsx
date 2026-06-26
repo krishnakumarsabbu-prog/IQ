@@ -16,6 +16,7 @@ import DropdownMasters from './DropdownMasters';
 import TemplateVersions from './TemplateVersions';
 import AuditHistory from './AuditHistory';
 import ComponentLibrarySettings from './ComponentLibrarySettings';
+import SmartEditorSettings from './SmartEditorSettings';
 
 export default function SettingsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -61,6 +62,7 @@ export default function SettingsPage() {
     { id: 'versions',   label: 'Template Versions',    icon: GitCommit },
     { id: 'audit',      label: 'Audit History',        icon: History },
     { id: 'components', label: 'Components',           icon: Package },
+    { id: 'ckeditor',   label: 'Smart Editor',         icon: Sliders },
   ];
 
   return (
@@ -208,6 +210,7 @@ export default function SettingsPage() {
                   {activeMessageTab === 'versions'   && <TemplateVersions isEmbedded={true} />}
                   {activeMessageTab === 'audit'      && <AuditHistory isEmbedded={true} />}
                   {activeMessageTab === 'components' && <ComponentLibrarySettings isEmbedded={true} />}
+                  {activeMessageTab === 'ckeditor'   && <SmartEditorSettings isEmbedded={true} />}
                 </div>
 
               </div>
