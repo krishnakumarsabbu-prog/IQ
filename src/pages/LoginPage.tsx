@@ -53,485 +53,1030 @@ export default function LoginPage() {
 
   return (
     <div style={{
-      minHeight: '100vh', width: '100vw', overflow: 'hidden',
-      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-      background: 'linear-gradient(135deg, #e8eeff 0%, #dce7fd 20%, #c8d8fc 45%, #b8caff 65%, #a8bcff 85%, #9aaff5 100%)',
-      position: 'relative', display: 'flex', flexDirection: 'column',
-    }}>
+      height: '100vh',
+      width: '100vw',
+      overflow: 'hidden',
+      fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
+      position: 'relative',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      boxSizing: 'border-box',
+    }} className="aurora-bg">
+      {/* Premium Fonts, Animations & Shimmers */}
       <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes floatY {
-          0%,100% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+        html, body {
+          margin: 0;
+          padding: 0;
+          overflow: hidden;
+          height: 100%;
         }
-        @keyframes floatCube {
-          0%,100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-14px) rotate(4deg); }
+        
+        @keyframes aurora {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
         }
-        @keyframes pulseDot {
-          0%,100% { opacity:1; transform:scale(1); }
-          50% { opacity:0.5; transform:scale(0.85); }
+        
+        .aurora-bg {
+          background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 25%, #DBE7FF 50%, #E0F2FE 75%, #F5F8FF 100%);
+          background-size: 400% 400%;
+          animation: aurora 22s ease infinite;
         }
-        @keyframes fadeSlideIn {
-          from { opacity:0; transform:translateY(16px); }
-          to { opacity:1; transform:translateY(0); }
+        
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-10px) rotate(2deg); }
         }
-        .lp-left { animation: fadeSlideIn 0.6s 0.05s ease both; }
-        .lp-mid  { animation: fadeSlideIn 0.6s 0.15s ease both; }
-        .lp-right{ animation: fadeSlideIn 0.6s 0.25s ease both; }
-        .btn-signin { transition: background 0.18s, box-shadow 0.18s, transform 0.12s !important; }
-        .btn-signin:hover { background: #1d4ed8 !important; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(37,99,235,0.45) !important; }
-        .btn-sso { transition: background 0.18s, border-color 0.18s !important; }
-        .btn-sso:hover { background: #f0f5ff !important; border-color: #93c5fd !important; }
+        @keyframes pulse-glow {
+          0%, 100% { opacity: 0.6; transform: scale(1); }
+          50% { opacity: 0.9; transform: scale(1.05); }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes shimmer {
+          100% { transform: translateX(100%); }
+        }
+
+        .animate-fade-in-left { animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-fade-in-middle { animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both; }
+        .animate-fade-in-right { animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both; }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        .animate-pulse-glow { animation: pulse-glow 4s ease-in-out infinite; }
+
+        .glass-vision {
+          background: rgba(255, 255, 255, 0.7);
+          backdrop-filter: blur(40px);
+          -webkit-backdrop-filter: blur(40px);
+          border: 1px solid rgba(255, 255, 255, 0.8);
+          box-shadow: 
+            0 4px 30px rgba(0, 0, 0, 0.02),
+            0 30px 60px rgba(30, 80, 255, 0.03),
+            inset 0 1px 2px rgba(255, 255, 255, 0.7);
+        }
+
+        .glass-dock {
+          background: rgba(255, 255, 255, 0.45);
+          backdrop-filter: blur(30px);
+          -webkit-backdrop-filter: blur(30px);
+          border: 1px solid rgba(255, 255, 255, 0.6);
+          box-shadow: 
+            0 20px 40px rgba(0, 0, 0, 0.03),
+            0 1px 2px rgba(0, 0, 0, 0.01),
+            inset 0 1px 2px rgba(255, 255, 255, 0.8);
+        }
+
+        .btn-premium {
+          position: relative;
+          overflow: hidden;
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-premium:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 12px 24px rgba(30, 80, 255, 0.3);
+          background: #003CDD !important;
+        }
+        .btn-premium::after {
+          content: '';
+          position: absolute;
+          top: 0; right: 0; bottom: 0; left: 0;
+          transform: translateX(-100%);
+          background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 20%, rgba(255,255,255,0.5) 60%, rgba(255,255,255,0) 100%);
+          animation: shimmer 2.5s infinite;
+        }
       `}</style>
 
-      {/* ── Decorative background arcs ── */}
-      <svg style={{ position:'absolute', top:0, right:0, pointerEvents:'none', zIndex:0 }} width="700" height="700" viewBox="0 0 700 700" fill="none">
-        <circle cx="600" cy="100" r="300" stroke="rgba(255,255,255,0.35)" strokeWidth="1"/>
-        <circle cx="600" cy="100" r="420" stroke="rgba(255,255,255,0.22)" strokeWidth="0.8"/>
-        <circle cx="600" cy="100" r="560" stroke="rgba(255,255,255,0.14)" strokeWidth="0.6"/>
+      {/* Layered Background Radial Gradients (Light Bloom) */}
+      <div style={{ position: 'absolute', top: '-10%', left: '-5%', width: '50vw', height: '50vh', background: 'radial-gradient(circle, rgba(99,102,241,0.18) 0%, rgba(99,102,241,0) 70%)', filter: 'blur(80px)', pointerEvents: 'none', zIndex: 0 }} />
+      <div style={{ position: 'absolute', top: '15%', right: '10%', width: '55vw', height: '55vh', background: 'radial-gradient(circle, rgba(59,130,246,0.12) 0%, rgba(59,130,246,0) 70%)', filter: 'blur(100px)', pointerEvents: 'none', zIndex: 0 }} />
+      <div style={{ position: 'absolute', bottom: '-15%', left: '20%', width: '60vw', height: '60vh', background: 'radial-gradient(circle, rgba(147,197,253,0.15) 0%, rgba(147,197,253,0) 70%)', filter: 'blur(120px)', pointerEvents: 'none', zIndex: 0 }} />
+
+      {/* Noise texture overlay */}
+      <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.02, pointerEvents: 'none', zIndex: 1 }}>
+        <filter id="noiseFilter">
+          <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
+        </filter>
+        <rect width="100%" height="100%" filter="url(#noiseFilter)" />
       </svg>
-      <svg style={{ position:'absolute', bottom:0, left:'30%', pointerEvents:'none', zIndex:0, opacity:0.18 }} width="400" height="300" viewBox="0 0 400 300" fill="none">
-        <ellipse cx="200" cy="150" rx="300" ry="200" stroke="white" strokeWidth="0.8"/>
-        <ellipse cx="200" cy="150" rx="200" ry="130" stroke="white" strokeWidth="0.6"/>
+
+      {/* Abstract wave lines */}
+      <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 0 }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="none">
+        <path d="M-100,600 C200,450 600,800 1000,550 C1250,390 1350,560 1650,420" fill="none" stroke="rgba(255,255,255,0.65)" strokeWidth="2" />
+        <path d="M-50,680 C300,520 700,850 1100,620 C1350,450 1450,680 1700,520" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="1.5" />
       </svg>
 
-      {/* ── Top header bar (logo + trusted badge) on gradient ── */}
-      <div style={{ position:'relative', zIndex:10, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'28px 48px 0' }}>
-        {/* Logo */}
-        <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-          <div style={{
-            width:42, height:42, borderRadius:10,
-            background:'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)',
-            display:'flex', alignItems:'center', justifyContent:'center',
-            boxShadow:'0 4px 14px rgba(37,99,235,0.35)'
-          }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-              <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M2 17l10 5 10-5" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M2 12l10 5 10-5" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
-          <div>
-            <div style={{ fontSize:18, fontWeight:800, color:'#0f172a', lineHeight:1.1, letterSpacing:'-0.2px' }}>Alerts IQ</div>
-            <div style={{ fontSize:8.5, fontWeight:700, letterSpacing:'2.2px', color:'#475569', textTransform:'uppercase' }}>BY ENTERPRISE TEAMS</div>
-          </div>
-        </div>
-
-        {/* Trusted badge */}
-        <div style={{
-          display:'flex', alignItems:'center', gap:8,
-          background:'rgba(255,255,255,0.82)', backdropFilter:'blur(10px)',
-          border:'1px solid rgba(37,99,235,0.18)', borderRadius:30,
-          padding:'9px 20px', boxShadow:'0 4px 20px rgba(37,99,235,0.1)'
+      {/* ── Center Container (Max-Width 1440px) ── */}
+      <div style={{
+        width: '100%',
+        maxWidth: '1440px',
+        margin: '0 auto',
+        padding: '0 48px',
+        boxSizing: 'border-box',
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100vh',
+        position: 'relative',
+        zIndex: 2,
+      }}>
+        {/* ── Top Header ── */}
+        <header style={{
+          width: '100%',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '24px 0 12px 0',
+          boxSizing: 'border-box',
+          zIndex: 10,
         }}>
-          <ShieldCheck style={{ width:15, height:15, color:'#2563eb' }} />
-          <span style={{ fontSize:12.5, fontWeight:600, color:'#0f172a' }}>Trusted by enterprise teams</span>
-        </div>
-      </div>
-
-      {/* ── Main 3-column layout ── */}
-      <div style={{ flex:1, display:'flex', gap:0, padding:'24px 48px 0', position:'relative', zIndex:5, alignItems:'flex-start', minHeight:0 }}>
-
-        {/* ── LEFT WHITE CARD ── */}
-        <div className="lp-left" style={{
-          width:'34%', minWidth:360, flexShrink:0,
-          background:'white', borderRadius:20,
-          boxShadow:'0 20px 60px rgba(37,99,235,0.13), 0 4px 20px rgba(15,23,42,0.07)',
-          padding:'44px 48px 36px', boxSizing:'border-box',
-          display:'flex', flexDirection:'column'
-        }}>
-          {/* Welcome */}
-          <div style={{ fontSize:16, color:'#0f172a', fontWeight:500, display:'flex', alignItems:'center', gap:7, marginBottom:8 }}>
-            Welcome back! <span style={{ fontSize:18 }}>👋</span>
-          </div>
-
-          {/* Heading */}
-          <h1 style={{ fontSize:38, fontWeight:800, color:'#0f172a', lineHeight:1.15, margin:'0 0 12px 0', letterSpacing:'-1px' }}>
-            Sign in to your<br />
-            <span style={{ color:'#2563eb' }}>workspace</span>
-          </h1>
-
-          <p style={{ fontSize:13.5, color:'#64748b', lineHeight:'20px', margin:'0 0 28px 0' }}>
-            Automate your email templates, streamline<br />
-            approvals, and deliver with confidence.
-          </p>
-
-          {error && (
-            <div style={{ marginBottom:14, padding:'10px 14px', background:'#fef2f2', border:'1px solid #fecaca', borderRadius:10, display:'flex', alignItems:'center', gap:8, color:'#dc2626', fontSize:13 }}>
-              <ShieldCheck style={{ width:14, height:14, flexShrink:0 }} /> {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} style={{ display:'flex', flexDirection:'column' }}>
-            {/* Email */}
-            <label style={{ fontSize:13.5, fontWeight:600, color:'#0f172a', marginBottom:7 }}>Email address</label>
-            <div style={{ position:'relative', marginBottom:18 }}>
-              <Mail style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', width:15, height:15, color: emailFocused ? '#2563eb' : '#94a3b8', transition:'color 0.2s' }} />
-              <input
-                type="email" value={email} onChange={e => setEmail(e.target.value)}
-                placeholder="name@company.com"
-                onFocus={() => setEmailFocused(true)} onBlur={() => setEmailFocused(false)}
-                style={{
-                  width:'100%', height:48, paddingLeft:42, paddingRight:14,
-                  border:`1.5px solid ${emailFocused ? '#2563eb' : '#e2e8f0'}`,
-                  borderRadius:10, outline:'none', fontSize:14, color:'#0f172a',
-                  background: emailFocused ? '#f8fbff' : 'white', boxSizing:'border-box',
-                  fontFamily:'inherit', transition:'border-color 0.2s, background 0.2s',
-                  boxShadow: emailFocused ? '0 0 0 3px rgba(37,99,235,0.09)' : 'none'
-                }}
-              />
-            </div>
-
-            {/* Password */}
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:7 }}>
-              <label style={{ fontSize:13.5, fontWeight:600, color:'#0f172a' }}>Password</label>
-              <a href="#" style={{ fontSize:13, fontWeight:600, color:'#2563eb', textDecoration:'none' }}>Forgot password?</a>
-            </div>
-            <div style={{ position:'relative', marginBottom:24 }}>
-              <Lock style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', width:15, height:15, color: passwordFocused ? '#2563eb' : '#94a3b8', transition:'color 0.2s' }} />
-              <input
-                type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                onFocus={() => setPasswordFocused(true)} onBlur={() => setPasswordFocused(false)}
-                style={{
-                  width:'100%', height:48, paddingLeft:42, paddingRight:44,
-                  border:`1.5px solid ${passwordFocused ? '#2563eb' : '#e2e8f0'}`,
-                  borderRadius:10, outline:'none', fontSize:14, color:'#0f172a',
-                  background: passwordFocused ? '#f8fbff' : 'white', boxSizing:'border-box',
-                  fontFamily:'inherit', transition:'border-color 0.2s, background 0.2s',
-                  boxShadow: passwordFocused ? '0 0 0 3px rgba(37,99,235,0.09)' : 'none'
-                }}
-              />
-              <button type="button" onClick={() => setShowPassword(!showPassword)}
-                style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', padding:4, color:'#94a3b8', lineHeight:0 }}>
-                {showPassword ? <EyeOff style={{ width:16, height:16 }} /> : <Eye style={{ width:16, height:16 }} />}
-              </button>
-            </div>
-
-            {/* Sign In button */}
-            <button type="submit" disabled={loading} className="btn-signin"
-              style={{
-                width:'100%', height:52, background:'#2563eb', color:'white',
-                border:'none', borderRadius:12, fontSize:15, fontWeight:700,
-                display:'flex', alignItems:'center', justifyContent:'center', gap:8,
-                cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.8 : 1,
-                fontFamily:'inherit', boxShadow:'0 4px 16px rgba(37,99,235,0.38)',
-                letterSpacing:'0.1px'
-              }}>
-              {loading
-                ? <div style={{ width:20, height:20, border:'2.5px solid white', borderTopColor:'transparent', borderRadius:'50%', animation:'spin 0.8s linear infinite' }} />
-                : <><span>Sign in</span><ArrowRight style={{ width:17, height:17 }} /></>
-              }
-            </button>
-          </form>
-
-          {/* Divider */}
-          <div style={{ display:'flex', alignItems:'center', gap:12, margin:'18px 0' }}>
-            <span style={{ flex:1, height:1, background:'#e2e8f0' }} />
-            <span style={{ fontSize:12, fontWeight:600, color:'#94a3b8' }}>or</span>
-            <span style={{ flex:1, height:1, background:'#e2e8f0' }} />
-          </div>
-
-          {/* SSO button */}
-          <button type="button" onClick={handleSSO} disabled={loading} className="btn-sso"
-            style={{
-              width:'100%', height:50, border:'1.5px solid #e2e8f0', borderRadius:12,
-              background:'white', fontSize:14, fontWeight:600, color:'#0f172a',
-              display:'flex', alignItems:'center', justifyContent:'center', gap:10,
-              cursor:'pointer', fontFamily:'inherit'
+          {/* Logo */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '10px',
+              background: 'linear-gradient(135deg, #1E50FF 0%, #003CDD 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 14px rgba(30, 80, 255, 0.22)',
             }}>
-            <svg width="20" height="20" viewBox="0 0 24 24">
-              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-            </svg>
-            Continue with SSO
-          </button>
-
-          {/* Security footer */}
-          <div style={{ display:'flex', alignItems:'center', gap:7, color:'#94a3b8', fontSize:12, marginTop:28 }}>
-            <ShieldCheck style={{ width:13, height:13 }} />
-            Enterprise security. Your data is always protected.
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line>
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              </svg>
+            </div>
+            <div>
+              <div style={{ fontSize: '20px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+                Alerts IQ
+              </div>
+              <div style={{ fontSize: '8.5px', fontWeight: 700, letterSpacing: '2.2px', color: '#64748B', textTransform: 'uppercase' }}>
+                BY ENTERPRISE TEAMS
+              </div>
+            </div>
           </div>
-        </div>
 
-        {/* ── MIDDLE SECTION (transparent on gradient) ── */}
-        <div className="lp-mid" style={{
-          flex:1, padding:'8px 44px 0', display:'flex', flexDirection:'column', position:'relative'
-        }}>
-          {/* AI Powered badge */}
-          <div style={{
-            display:'inline-flex', alignItems:'center', gap:7, alignSelf:'flex-start',
-            background:'rgba(255,255,255,0.72)', backdropFilter:'blur(8px)',
-            border:'1px solid rgba(37,99,235,0.2)', borderRadius:30,
-            padding:'7px 16px', marginBottom:22,
-            boxShadow:'0 2px 12px rgba(37,99,235,0.1)'
+          {/* Trusted Badge */}
+          <div className="glass-dock" style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            borderRadius: '30px',
+            padding: '8px 18px',
           }}>
-            <div style={{ width:7, height:7, borderRadius:'50%', background:'#2563eb', animation:'pulseDot 2s ease-in-out infinite', flexShrink:0 }} />
-            <span style={{ fontSize:11, fontWeight:700, color:'#2563eb', letterSpacing:'1px', textTransform:'uppercase' }}>AI POWERED</span>
-            <Sparkles style={{ width:12, height:12, color:'#2563eb' }} />
+            <ShieldCheck style={{ width: '15px', height: '15px', color: '#1E50FF' }} />
+            <span style={{ fontSize: '13px', fontWeight: 600, color: '#374151' }}>Trusted by enterprise teams</span>
           </div>
+        </header>
 
-          {/* Main heading */}
-          <h2 style={{ fontSize:40, fontWeight:800, color:'#0f172a', lineHeight:1.18, margin:'0 0 14px 0', letterSpacing:'-1.2px' }}>
-            AI-powered email<br />
-            template <span style={{ color:'#2563eb' }}>automation</span>
-          </h2>
-
-          <p style={{ fontSize:15, color:'#475569', lineHeight:'23px', margin:'0 0 36px 0' }}>
-            Create on-brand, responsive emails in minutes.<br />
-            Automate approvals. Deliver at scale.
-          </p>
-
-          {/* Feature rows */}
-          <div style={{ display:'flex', flexDirection:'column', gap:26 }}>
-            {[
-              {
-                icon: (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/>
-                  </svg>
-                ),
-                title: 'Smart template builder',
-                desc: 'Build beautiful emails with AI assistance',
-                titleColor: '#0f172a'
-              },
-              {
-                icon: (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                  </svg>
-                ),
-                title: 'Brand consistency',
-                desc: 'Ensure every email is on-brand',
-                titleColor: '#0f172a'
-              },
-              {
-                icon: <Zap style={{ width:20, height:20, color:'#2563eb' }} />,
-                title: 'Faster approvals',
-                desc: 'Automate review and approval workflows',
-                titleColor: '#2563eb'
-              },
-            ].map((f, i) => (
-              <div key={i} style={{ display:'flex', alignItems:'flex-start', gap:16 }}>
-                <div style={{
-                  width:46, height:46, borderRadius:12, flexShrink:0,
-                  background:'rgba(255,255,255,0.82)', backdropFilter:'blur(6px)',
-                  border:'1px solid rgba(37,99,235,0.15)',
-                  display:'flex', alignItems:'center', justifyContent:'center',
-                  boxShadow:'0 2px 12px rgba(37,99,235,0.1)'
-                }}>
-                  {f.icon}
-                </div>
-                <div style={{ paddingTop:2 }}>
-                  <div style={{ fontSize:15, fontWeight:700, color: f.titleColor, marginBottom:3 }}>{f.title}</div>
-                  <div style={{ fontSize:13, color:'#64748b', lineHeight:'18px' }}>{f.desc}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* 3D Isometric Cube */}
-          <div style={{ position:'absolute', bottom:80, right:20, animation:'floatCube 6s ease-in-out infinite' }}>
-            <svg width="130" height="120" viewBox="0 0 130 120" fill="none">
-              <defs>
-                <linearGradient id="iso-top" x1="65" y1="0" x2="65" y2="55" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="#93c5fd"/>
-                  <stop offset="1" stopColor="#60a5fa"/>
-                </linearGradient>
-                <linearGradient id="iso-left" x1="10" y1="55" x2="65" y2="110" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="#2563eb"/>
-                  <stop offset="1" stopColor="#1d4ed8"/>
-                </linearGradient>
-                <linearGradient id="iso-right" x1="65" y1="55" x2="120" y2="110" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="#3b82f6"/>
-                  <stop offset="1" stopColor="#2563eb"/>
-                </linearGradient>
-              </defs>
-              {/* Top face */}
-              <polygon points="65,8 115,36 65,64 15,36" fill="url(#iso-top)" opacity="0.95"/>
-              {/* Left face */}
-              <polygon points="15,36 65,64 65,110 15,82" fill="url(#iso-left)" opacity="0.9"/>
-              {/* Right face */}
-              <polygon points="115,36 65,64 65,110 115,82" fill="url(#iso-right)" opacity="0.85"/>
-              {/* Shine on top */}
-              <polygon points="65,12 110,38 65,58 20,38" fill="white" opacity="0.12"/>
-            </svg>
-          </div>
-        </div>
-
-        {/* ── RIGHT WHITE CARD ── */}
-        <div className="lp-right" style={{
-          width:'32%', minWidth:340, flexShrink:0,
-          background:'white', borderRadius:20,
-          boxShadow:'0 20px 60px rgba(37,99,235,0.13), 0 4px 20px rgba(15,23,42,0.07)',
-          display:'flex', flexDirection:'column', overflow:'hidden'
+        {/* ── Main Layout Content ── */}
+        <main style={{
+          flex: 1,
+          display: 'flex',
+          padding: '12px 0 24px 0',
+          boxSizing: 'border-box',
+          gap: '48px',
+          alignItems: 'stretch',
+          position: 'relative',
+          minHeight: 0, // ensure flex container behaves correctly
         }}>
-          {/* Card header */}
-          <div style={{ padding:'20px 22px 14px', borderBottom:'1px solid #f1f5f9', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-            <span style={{ fontSize:13.5, fontWeight:700, color:'#0f172a' }}>Live Email Template Preview</span>
-            <div style={{ display:'flex', alignItems:'center', gap:6, background:'#f0fdf4', border:'1px solid #bbf7d0', borderRadius:20, padding:'5px 12px' }}>
-              <div style={{ width:7, height:7, borderRadius:'50%', background:'#22c55e', animation:'pulseDot 1.8s ease-in-out infinite' }} />
-              <span style={{ fontSize:11.5, fontWeight:700, color:'#16a34a' }}>Live</span>
+          {/* Left Column - Premium Login Card */}
+          <div className="animate-fade-in-left" style={{
+            width: '410px',
+            flexShrink: 0,
+            borderRadius: '24px',
+            padding: '32px 36px',
+            boxSizing: 'border-box',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            background: '#FFFFFF',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02)',
+            border: '1px solid rgba(255, 255, 255, 0.8)',
+            height: '100%',
+          }}>
+            <div style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ fontSize: '15px', color: '#4B5563', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
+                  Welcome back! <span style={{ fontSize: '16px' }}>👋</span>
+                </div>
+
+                <h1 style={{ fontSize: '38px', fontWeight: 800, color: '#0F172A', lineHeight: 1.15, margin: '0 0 12px 0', letterSpacing: '-0.03em' }}>
+                  Sign in to your<br />
+                  <span style={{ color: '#1E50FF' }}>workspace</span>
+                </h1>
+
+                <p style={{ fontSize: '14px', color: '#6B7280', lineHeight: '1.5', margin: '0 0 26px 0' }}>
+                  Automate your email templates, streamline approvals, and deliver with confidence.
+                </p>
+
+                {error && (
+                  <div style={{
+                    marginBottom: '16px',
+                    padding: '12px 14px',
+                    background: 'rgba(254, 242, 242, 0.7)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid #FEE2E2',
+                    borderRadius: '10px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    color: '#DC2626',
+                    fontSize: '13px',
+                    fontWeight: 500
+                  }}>
+                    <ShieldCheck style={{ width: '15px', height: '15px', flexShrink: 0 }} />
+                    {error}
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column' }}>
+                  {/* Email field */}
+                  <label style={{ fontSize: '13.5px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>Email address</label>
+                  <div style={{ position: 'relative', marginBottom: '18px' }}>
+                    <Mail style={{
+                      position: 'absolute',
+                      left: '14px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      width: '16px',
+                      height: '16px',
+                      color: emailFocused ? '#1E50FF' : '#64748B',
+                      transition: 'color 0.2s'
+                    }} />
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                      placeholder="name@company.com"
+                      onFocus={() => setEmailFocused(true)}
+                      onBlur={() => setEmailFocused(false)}
+                      style={{
+                        width: '100%',
+                        height: '48px',
+                        paddingLeft: '42px',
+                        paddingRight: '14px',
+                        border: `1px solid ${emailFocused ? '#1E50FF' : '#E2E8F0'}`,
+                        borderRadius: '10px',
+                        outline: 'none',
+                        fontSize: '14px',
+                        color: '#0F172A',
+                        background: '#FFFFFF',
+                        boxSizing: 'border-box',
+                        fontFamily: 'inherit',
+                        transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                        boxShadow: emailFocused ? '0 0 0 4px rgba(30, 80, 255, 0.08)' : 'none'
+                      }}
+                    />
+                  </div>
+
+                  {/* Password field */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <label style={{ fontSize: '13.5px', fontWeight: 600, color: '#374151' }}>Password</label>
+                    <a href="#" style={{ fontSize: '13px', fontWeight: 600, color: '#1E50FF', textDecoration: 'none', transition: 'color 0.2s' }}>
+                      Forgot password?
+                    </a>
+                  </div>
+                  <div style={{ position: 'relative', marginBottom: '24px' }}>
+                    <Lock style={{
+                      position: 'absolute',
+                      left: '14px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      width: '16px',
+                      height: '16px',
+                      color: passwordFocused ? '#1E50FF' : '#64748B',
+                      transition: 'color 0.2s'
+                    }} />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      placeholder="Enter your password"
+                      onFocus={() => setPasswordFocused(true)}
+                      onBlur={() => setPasswordFocused(false)}
+                      style={{
+                        width: '100%',
+                        height: '48px',
+                        paddingLeft: '42px',
+                        paddingRight: '44px',
+                        border: `1px solid ${passwordFocused ? '#1E50FF' : '#E2E8F0'}`,
+                        borderRadius: '10px',
+                        outline: 'none',
+                        fontSize: '14px',
+                        color: '#0F172A',
+                        background: '#FFFFFF',
+                        boxSizing: 'border-box',
+                        fontFamily: 'inherit',
+                        transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                        boxShadow: passwordFocused ? '0 0 0 4px rgba(30, 80, 255, 0.08)' : 'none'
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{
+                        position: 'absolute',
+                        right: '14px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: 4,
+                        color: '#64748B',
+                        lineHeight: 0
+                      }}
+                    >
+                      {showPassword ? <EyeOff style={{ width: '17px', height: '17px' }} /> : <Eye style={{ width: '17px', height: '17px' }} />}
+                    </button>
+                  </div>
+
+                  {/* Sign In Button */}
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="btn-premium"
+                    style={{
+                      width: '100%',
+                      height: '50px',
+                      background: '#1E50FF',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '12px',
+                      fontSize: '15px',
+                      fontWeight: 700,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      cursor: loading ? 'not-allowed' : 'pointer',
+                      opacity: loading ? 0.8 : 1,
+                      fontFamily: 'inherit',
+                      boxShadow: '0 4px 16px rgba(30, 80, 255, 0.2)',
+                      letterSpacing: '0.2px'
+                    }}
+                  >
+                    {loading ? (
+                      <div style={{ width: '20px', height: '20px', border: '2.5px solid white', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                    ) : (
+                      <>
+                        <span>Sign in</span>
+                        <ArrowRight style={{ width: '16px', height: '16px' }} />
+                      </>
+                    )}
+                  </button>
+                </form>
+
+                {/* Divider */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '20px 0' }}>
+                  <span style={{ flex: 1, height: '1px', background: 'rgba(0, 0, 0, 0.06)' }} />
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>or</span>
+                  <span style={{ flex: 1, height: '1px', background: 'rgba(0, 0, 0, 0.06)' }} />
+                </div>
+
+                {/* SSO button */}
+                <button
+                  type="button"
+                  onClick={handleSSO}
+                  disabled={loading}
+                  style={{
+                    width: '100%',
+                    height: '48px',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '12px',
+                    background: '#FFFFFF',
+                    fontSize: '14.5px',
+                    fontWeight: 600,
+                    color: '#374151',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '10px',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    transition: 'all 0.2s',
+                    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.02)'
+                  }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                  </svg>
+                  Continue with SSO
+                </button>
+              </div>
+
+              {/* Bottom Security Badge */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#64748B', fontSize: '12.5px', fontWeight: 500, justifyContent: 'center', marginTop: '24px' }}>
+                <ShieldCheck style={{ width: '15px', height: '15px', color: '#1E50FF' }} />
+                <span>Enterprise security. Your data is always protected.</span>
+              </div>
             </div>
           </div>
 
-          {/* Email preview */}
-          <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
-            {/* Email sender row */}
-            <div style={{ padding:'12px 16px', display:'flex', alignItems:'center', gap:10, borderBottom:'1px solid #f8fafc' }}>
-              <div style={{ width:32, height:32, borderRadius:8, background:'linear-gradient(135deg,#2563eb,#3b82f6)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="2"/>
-                  <path d="M12 8v4l3 3" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                </svg>
-              </div>
-              <span style={{ fontSize:13, fontWeight:700, color:'#0f172a' }}>Your Company</span>
-            </div>
-
-            <div style={{ display:'flex', flex:1 }}>
-              {/* Icon sidebar */}
-              <div style={{ width:42, borderRight:'1px solid #f1f5f9', padding:'14px 0', display:'flex', flexDirection:'column', alignItems:'center', gap:14, background:'#fafbfc', flexShrink:0 }}>
-                {[
-                  <svg key="g" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>,
-                  <svg key="img" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>,
-                  <svg key="up" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>,
-                  <svg key="usr" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
-                  <svg key="srch" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>,
-                ].map((icon, i) => (
-                  <div key={i} style={{ width:28, height:28, borderRadius:7, background: i===0 ? '#eff6ff' : 'transparent', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                    {icon}
-                  </div>
-                ))}
-              </div>
-
-              {/* Email body */}
-              <div style={{ flex:1, padding:'14px 16px', overflowY:'auto', display:'flex', flexDirection:'column', gap:10 }}>
-                {/* Hero banner */}
+          {/* Right Section Layout */}
+          <div style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            height: '100%',
+          }}>
+            {/* Top content row: Middle features + Mockup preview */}
+            <div style={{
+              display: 'flex',
+              flex: 1,
+              gap: '32px',
+              alignItems: 'center',
+              minHeight: 0,
+              marginBottom: '16px',
+            }}>
+              {/* Middle Column (AI Text & features) */}
+              <div className="animate-fade-in-middle" style={{
+                flex: 1.1,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                position: 'relative',
+              }}>
+                {/* AI Powered Badge */}
                 <div style={{
-                  borderRadius:10, overflow:'hidden', position:'relative',
-                  background:'linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 55%, #2563eb 100%)',
-                  padding:'16px 14px 14px', color:'white', minHeight:130
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  alignSelf: 'flex-start',
+                  borderRadius: '30px',
+                  padding: '6px 14px',
+                  marginBottom: '20px',
+                  background: 'rgba(239, 246, 255, 0.8)',
+                  border: '1px solid rgba(30, 80, 255, 0.1)',
                 }}>
-                  {/* Glow */}
-                  <div style={{ position:'absolute', right:-20, top:-20, width:100, height:100, borderRadius:'50%', background:'rgba(147,197,253,0.18)', filter:'blur(20px)', pointerEvents:'none' }} />
-                  {/* Floating stars */}
-                  <div style={{ position:'absolute', top:10, left:'55%', fontSize:11, opacity:0.6 }}>✦</div>
-                  <div style={{ position:'absolute', top:20, right:24, fontSize:8, opacity:0.5 }}>✦</div>
-                  <div style={{ position:'absolute', bottom:16, right:10, fontSize:10, opacity:0.4 }}>✦</div>
-                  {/* Envelope illustration */}
-                  <div style={{ position:'absolute', right:10, top:'50%', transform:'translateY(-50%)', width:78, height:68, opacity:0.95 }}>
-                    <svg viewBox="0 0 90 80" fill="none" style={{ width:'100%', height:'100%' }}>
-                      <rect x="5" y="22" width="75" height="50" rx="5" fill="white" opacity="0.18"/>
-                      <rect x="5" y="22" width="75" height="50" rx="5" stroke="white" strokeWidth="1.5" opacity="0.55"/>
-                      <polyline points="5,24 42.5,50 80,24" stroke="white" strokeWidth="1.5" opacity="0.7"/>
-                      {/* Check badge */}
-                      <circle cx="68" cy="18" r="13" fill="#22c55e"/>
-                      <polyline points="62,18 66,23 75,12" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </div>
-                  <h3 style={{ fontSize:15, fontWeight:800, lineHeight:1.3, margin:'0 0 6px 0', position:'relative', zIndex:1, maxWidth:'52%' }}>Your update is here</h3>
-                  <p style={{ fontSize:11, margin:'0 0 10px 0', opacity:0.78, lineHeight:'15px', position:'relative', zIndex:1, maxWidth:'50%' }}>
-                    We're excited to share what's new and improved.
-                  </p>
-                  <button style={{ background:'white', color:'#1d4ed8', border:'none', borderRadius:6, padding:'5px 12px', fontSize:10.5, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:4, position:'relative', zIndex:1, whiteSpace:'nowrap' }}>
-                    Learn more <ArrowRight style={{ width:11, height:11 }} />
-                  </button>
+                  <Sparkles style={{ width: '13px', height: '13px', color: '#1E50FF' }} />
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#1E50FF', letterSpacing: '1px', textTransform: 'uppercase' }}>
+                    AI POWERED
+                  </span>
                 </div>
 
-                {/* 3 feature columns */}
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8 }}>
+                {/* Main Heading */}
+                <h2 style={{
+                  fontSize: '40px',
+                  fontWeight: 800,
+                  color: '#0F172A',
+                  lineHeight: 1.15,
+                  margin: '0 0 16px 0',
+                  letterSpacing: '-0.02em',
+                }}>
+                  AI-powered email<br />
+                  template <span style={{ color: '#1E50FF' }}>automation</span>
+                </h2>
+
+                <p style={{
+                  fontSize: '15px',
+                  color: '#4B5563',
+                  lineHeight: '1.6',
+                  margin: '0 0 28px 0',
+                }}>
+                  Create on-brand, responsive emails in minutes.<br />
+                  Automate approvals. Deliver at scale.
+                </p>
+
+                {/* Features List (No surrounding cards/boxes, exactly like original) */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                   {[
-                    { emoji:'🚀', title:'New features', desc:'Powerful tools to boost productivity.' },
-                    { emoji:'🔒', title:'Enhanced security', desc:'Enterprise-grade protection.' },
-                    { emoji:'📈', title:'Better insights', desc:'Data-driven decisions made simple.' },
-                  ].map((c, i) => (
-                    <div key={i} style={{ border:'1px solid #f1f5f9', borderRadius:8, padding:'9px 8px' }}>
-                      <div style={{ fontSize:15, marginBottom:3 }}>{c.emoji}</div>
-                      <div style={{ fontSize:10.5, fontWeight:700, color:'#0f172a', marginBottom:3, lineHeight:'13px' }}>{c.title}</div>
-                      <div style={{ fontSize:9.5, color:'#94a3b8', lineHeight:'12px' }}>{c.desc}</div>
+                    {
+                      icon: (
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E50FF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 2c0 5.5-4.5 10-10 10 5.5 0 10 4.5 10 10 0-5.5 4.5-10 10-10-5.5 0-10-4.5-10-10z" fill="#1E50FF" />
+                        </svg>
+                      ),
+                      title: 'Smart template builder',
+                      desc: 'Build beautiful emails with AI assistance'
+                    },
+                    {
+                      icon: (
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E50FF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                          <polyline points="9 11 11 13 15 9" />
+                        </svg>
+                      ),
+                      title: 'Brand consistency',
+                      desc: 'Ensure every email is on-brand'
+                    },
+                    {
+                      icon: (
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E50FF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" fill="#1E50FF" />
+                        </svg>
+                      ),
+                      title: 'Faster approvals',
+                      desc: 'Automate review and approval workflows'
+                    }
+                  ].map((f, i) => (
+                    <div key={i} style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '18px',
+                    }}>
+                      <div style={{
+                        width: '46px',
+                        height: '46px',
+                        borderRadius: '50%',
+                        flexShrink: 0,
+                        background: '#FFFFFF',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 8px 16px rgba(0, 0, 0, 0.04), 0 2px 4px rgba(0, 0, 0, 0.02)',
+                      }}>
+                        {f.icon}
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '15.5px', fontWeight: 700, color: '#1F2937', marginBottom: '2px' }}>
+                          {f.title}
+                        </div>
+                        <div style={{ fontSize: '13px', color: '#6B7280', lineHeight: '1.4' }}>
+                          {f.desc}
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
+              </div>
 
-                {/* What's new */}
-                <div style={{ border:'1px solid #f1f5f9', borderRadius:8, padding:'10px 12px', display:'flex', gap:10, alignItems:'flex-start' }}>
-                  <div style={{ flex:1 }}>
-                    <div style={{ fontSize:12, fontWeight:700, color:'#0f172a', marginBottom:8 }}>What's new?</div>
-                    {['AI-powered content suggestions','Real-time collaboration','Advanced analytics dashboard'].map((item, i) => (
-                      <div key={i} style={{ display:'flex', alignItems:'center', gap:6, marginBottom:5 }}>
-                        <CheckCircle style={{ width:11, height:11, color:'#2563eb', flexShrink:0 }} />
-                        <span style={{ fontSize:10.5, color:'#475569' }}>{item}</span>
-                      </div>
-                    ))}
+              {/* Mockup Preview Workspace Column */}
+              <div className="animate-fade-in-right" style={{
+                flex: 0.95,
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minWidth: '400px',
+              }}>
+                <div style={{
+                  width: '100%',
+                  borderRadius: '24px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden',
+                  maxHeight: '480px',
+                  background: '#FFFFFF',
+                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02)',
+                  border: '1px solid rgba(226, 232, 240, 0.8)',
+                }}>
+                  {/* Mockup Title Header Toolbar */}
+                  <div style={{
+                    padding: '16px 24px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    borderBottom: '1px solid #F1F5F9',
+                    background: '#FFFFFF',
+                  }}>
+                    <span style={{ fontSize: '13.5px', fontWeight: 700, color: '#0F172A' }}>
+                      Live Email Template Preview
+                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#E2FBEB', borderRadius: '20px', padding: '3px 10px' }}>
+                      <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22C55E' }} />
+                      <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#16A34A' }}>Live</span>
+                    </div>
                   </div>
-                  {/* Pie chart illustration */}
-                  <div style={{ width:60, height:56, flexShrink:0 }}>
-                    <svg viewBox="0 0 70 70" fill="none" style={{ width:'100%', height:'100%' }}>
-                      <circle cx="35" cy="35" r="28" fill="#f1f5f9"/>
-                      <path d="M35 35 L35 7 A28 28 0 0 1 63 35 Z" fill="#2563eb"/>
-                      <path d="M35 35 L63 35 A28 28 0 0 1 21 59 Z" fill="#60a5fa"/>
-                      <path d="M35 35 L21 59 A28 28 0 0 1 7 21 Z" fill="#f59e0b"/>
-                      <circle cx="35" cy="35" r="14" fill="white"/>
-                    </svg>
+
+                  {/* Main Workspace split */}
+                  <div style={{ 
+                    display: 'flex', 
+                    flex: 1, 
+                    minHeight: 0,
+                    background: '#FFFFFF',
+                  }}>
+                    {/* Left Sidebar Blocks */}
+                    <div style={{
+                      width: '56px',
+                      borderRight: '1px solid #F1F5F9',
+                      padding: '20px 0',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '20px',
+                      background: '#F8FAFC',
+                      flexShrink: 0,
+                    }}>
+                      <div style={{
+                        width: '28px',
+                        height: '28px',
+                        borderRadius: '50%',
+                        background: '#1E50FF',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 4px 10px rgba(30, 80, 255, 0.3)',
+                        marginBottom: '10px'
+                      }}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="15 3 21 3 21 9"></polyline>
+                          <line x1="10" y1="14" x2="21" y2="3"></line>
+                        </svg>
+                      </div>
+                      {[
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>,
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><line x1="9" y1="9" x2="15" y2="9" /><line x1="9" y1="13" x2="15" y2="13" /><line x1="9" y1="17" x2="11" y2="17" /></svg>,
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg>,
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>,
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2.5"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
+                      ].map((icon, idx) => (
+                        <div key={idx} style={{ width: '36px', height: '36px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          {icon}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Canvas Workspace Viewport */}
+                    <div style={{
+                      flex: 1,
+                      padding: '24px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '16px',
+                      background: '#FFFFFF',
+                      minHeight: 0,
+                    }}>
+                      {/* Header bar within Editor */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#1E50FF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '10px' }}>✓</div>
+                          <span style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A' }}>Your Company</span>
+                        </div>
+                      </div>
+
+                      {/* Blue Premium Hero Card */}
+                      <div style={{
+                        borderRadius: '12px',
+                        background: 'linear-gradient(135deg, #1E50FF 0%, #003CDD 100%)',
+                        padding: '18px',
+                        color: 'white',
+                        position: 'relative',
+                        overflow: 'hidden',
+                        boxShadow: '0 12px 30px rgba(30, 80, 255, 0.25)',
+                        border: '1px solid rgba(255,255,255,0.15)',
+                      }}>
+                        {/* Interactive 3D Envelope illustration inside card */}
+                        <div style={{
+                          position: 'absolute',
+                          right: '8px',
+                          bottom: '8px',
+                          width: '95px',
+                          height: '85px',
+                          opacity: 0.95,
+                          zIndex: 1,
+                          transform: 'rotate(-5deg) translateY(-2px)',
+                        }}>
+                          <svg width="100%" height="100%" viewBox="0 0 100 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="5" y="25" width="80" height="55" rx="6" fill="#1D4ED8" opacity="0.8" />
+                            <rect x="5" y="25" width="80" height="55" rx="6" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5" />
+                            <rect x="15" y="8" width="60" height="40" rx="4" fill="white" />
+                            <line x1="22" y1="18" x2="52" y2="18" stroke="#E2E8F0" strokeWidth="3" strokeLinecap="round" />
+                            <line x1="22" y1="26" x2="68" y2="26" stroke="#E2E8F0" strokeWidth="3" strokeLinecap="round" />
+                            <line x1="22" y1="34" x2="40" y2="34" stroke="#E2E8F0" strokeWidth="3" strokeLinecap="round" />
+                            <path d="M5,25 L45,55 C48,57 52,57 55,55 L95,25" stroke="rgba(255,255,255,0.7)" strokeWidth="1.5" />
+                            <polyline points="5,80 45,50 95,80" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5" />
+                            <circle cx="78" cy="18" r="11" fill="#10B981" filter="drop-shadow(0 2px 6px rgba(16,185,129,0.4))" />
+                            <polyline points="73,18 77,22 84,14" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </div>
+
+                        {/* Sparkles icons on Hero card */}
+                        <div className="animate-pulse-glow" style={{ position: 'absolute', right: '110px', top: '15px', pointerEvents: 'none' }}>
+                          <Sparkles style={{ width: '14px', height: '14px', color: '#93C5FD' }} />
+                        </div>
+
+                        <div style={{ position: 'relative', zIndex: 2, maxWidth: '60%' }}>
+                          <h3 style={{ fontSize: '16px', fontWeight: 800, margin: '0 0 6px 0', lineHeight: 1.2, letterSpacing: '-0.01em' }}>
+                            Your update is here
+                          </h3>
+                          <p style={{ fontSize: '11px', margin: '0 0 14px 0', opacity: 0.85, lineHeight: 1.4 }}>
+                            We're excited to share what's new and improved in this edition.
+                          </p>
+                          <button style={{
+                            background: '#FFFFFF',
+                            color: '#1D4ED8',
+                            border: 'none',
+                            borderRadius: '8px',
+                            padding: '7px 14px',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            boxShadow: '0 4px 10px rgba(0,0,0,0.08)',
+                          }}>
+                            Learn more <ArrowRight style={{ width: '12px', height: '12px' }} />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Three Columns Grid (Colored Backgrounds, No Borders) */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+                        {[
+                          { 
+                            icon: (
+                              <div style={{width: 22, height: 22, borderRadius: '50%', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.03)'}}>
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#EA580C" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M4.5 16.5c-1.5 1.26-2 2.76-2 3.5 0 .28.22.5.5.5.74 0 2.24-.5 3.5-2" />
+                                  <path d="M12 15l-3-3M2 22l1-1M17 5c-2.3 0-4.3 1-5.7 2.7L7 12l5 5 4.3-4.3c1.7-1.4 2.7-3.4 2.7-5.7V3h-2v2z" />
+                                </svg>
+                              </div>
+                            ), 
+                            title: 'New features', 
+                            desc: 'Powerful tools to boost productivity.',
+                            bg: '#FFF8F5'
+                          },
+                          { 
+                            icon: (
+                              <div style={{width: 22, height: 22, borderRadius: '50%', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.03)'}}>
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#CA8A04" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                                </svg>
+                              </div>
+                            ), 
+                            title: 'Enhanced security', 
+                            desc: 'Enterprise-grade protection.',
+                            bg: '#FFFDF0'
+                          },
+                          { 
+                            icon: (
+                              <div style={{width: 22, height: 22, borderRadius: '50%', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.03)'}}>
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <line x1="18" y1="20" x2="18" y2="10" />
+                                  <line x1="12" y1="20" x2="12" y2="4" />
+                                  <line x1="6" y1="20" x2="6" y2="14" />
+                                </svg>
+                              </div>
+                            ), 
+                            title: 'Better insights', 
+                            desc: 'Data-driven decisions made simple.',
+                            bg: '#F4FDF7'
+                          },
+                        ].map((col, idx) => (
+                          <div key={idx} style={{
+                            borderRadius: '10px',
+                            padding: '10px 8px',
+                            background: col.bg,
+                          }}>
+                            <div style={{ marginBottom: '6px' }}>{col.icon}</div>
+                            <div style={{ fontSize: '11px', fontWeight: 700, color: '#1F2937', marginBottom: '2px', lineHeight: 1.2 }}>
+                              {col.title}
+                            </div>
+                            <div style={{ fontSize: '9px', color: '#64748B', lineHeight: 1.3 }}>
+                              {col.desc}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* What's new list + Chart graphic row */}
+                      <div style={{
+                        display: 'flex',
+                        gap: '12px',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: '12px', fontWeight: 700, color: '#1F2937', marginBottom: '8px' }}>
+                            What's new?
+                          </div>
+                          {[
+                            'AI-powered content suggestions',
+                            'Real-time collaboration',
+                            'Advanced analytics dashboard'
+                          ].map((item, idx) => (
+                            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                              <div style={{ width: '10px', height: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1E50FF', flexShrink: 0 }}>
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4">
+                                  <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                              </div>
+                              <span style={{ fontSize: '10.5px', color: '#4B5563', fontWeight: 500 }}>{item}</span>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Layered Dashboard Chart Widget floating with no borders */}
+                        <div style={{ width: '100px', height: '60px', flexShrink: 0, position: 'relative' }}>
+                          <svg viewBox="0 0 100 60" fill="none" style={{ width: '100%', height: '100%' }}>
+                            {/* Bar Chart group */}
+                            <rect x="0" y="25" width="6" height="18" rx="2" fill="#E2E8F0" />
+                            <rect x="10" y="18" width="6" height="25" rx="2" fill="#60A5FA" opacity="0.6" />
+                            <rect x="20" y="22" width="6" height="21" rx="2" fill="#93C5FD" opacity="0.4" />
+                            
+                            {/* Pie Chart group */}
+                            <circle cx="65" cy="30" r="20" fill="white" filter="drop-shadow(0 4px 10px rgba(0,0,0,0.04))" />
+                            <circle cx="65" cy="30" r="16" stroke="#F1F5F9" strokeWidth="4" />
+                            
+                            {/* Blue segment */}
+                            <path d="M65 14 A16 16 0 0 1 81 30" stroke="#1E50FF" strokeWidth="4" strokeLinecap="round" />
+                            {/* Light Blue segment */}
+                            <path d="M81 30 A16 16 0 0 1 65 46" stroke="#60A5FA" strokeWidth="4" strokeLinecap="round" />
+                            
+                            <circle cx="65" cy="30" r="10" fill="white" />
+                          </svg>
+                        </div>
+                      </div>
+
+                      {/* Footer Signature */}
+                      <div style={{
+                        marginTop: 'auto',
+                        paddingTop: '10px',
+                        borderTop: '1px solid #F1F5F9'
+                      }}>
+                        <div style={{ fontSize: '10px', color: '#4B5563', fontWeight: 500 }}>
+                          Thanks for being part of our journey!
+                        </div>
+                        <div style={{ fontSize: '10px', color: '#94A3B8', fontWeight: 500 }}>
+                          – The Your Company Team
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
+              </div>
+            </div>
 
-                {/* Footer */}
-                <div style={{ fontSize:10.5, color:'#94a3b8', lineHeight:'15px', paddingBottom:4 }}>
-                  Thanks for being part of our journey!<br />
-                  <span style={{ color:'#64748b' }}>— The <strong style={{ color:'#0f172a' }}>Your Company</strong> Team</span>
+            {/* Bottom Apple Dock style glass stats bar spanning across middle and right */}
+            <div className="glass-dock" style={{
+              display: 'flex',
+              alignItems: 'center',
+              width: '100%',
+              height: '76px',
+              borderRadius: '20px',
+              boxSizing: 'border-box',
+              padding: '0 32px',
+              zIndex: 5,
+              position: 'relative',
+              justifyContent: 'space-between'
+            }}>
+              {/* 3D Glassmorphic Crystal Cube Floating */}
+              <div className="animate-float" style={{
+                position: 'absolute',
+                left: '-24px',
+                top: '-68px',
+                zIndex: 6,
+                pointerEvents: 'none',
+              }}>
+                <svg width="110" height="110" viewBox="0 0 120 120" fill="none" style={{ filter: 'drop-shadow(0 20px 30px rgba(30,80,255,0.22))' }}>
+                  <defs>
+                    <linearGradient id="glass-top" x1="60" y1="12" x2="60" y2="58" gradientUnits="userSpaceOnUse">
+                      <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.85" />
+                      <stop offset="35%" stopColor="#E0F2FE" stopOpacity="0.65" />
+                      <stop offset="100%" stopColor="#93C5FD" stopOpacity="0.3" />
+                    </linearGradient>
+                    <linearGradient id="glass-left" x1="12" y1="35" x2="60" y2="105" gradientUnits="userSpaceOnUse">
+                      <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.6" />
+                      <stop offset="50%" stopColor="#2563EB" stopOpacity="0.4" />
+                      <stop offset="100%" stopColor="#1D4ED8" stopOpacity="0.85" />
+                    </linearGradient>
+                    <linearGradient id="glass-right" x1="60" y1="35" x2="108" y2="105" gradientUnits="userSpaceOnUse">
+                      <stop offset="0%" stopColor="#60A5FA" stopOpacity="0.75" />
+                      <stop offset="50%" stopColor="#3B82F6" stopOpacity="0.45" />
+                      <stop offset="100%" stopColor="#1E40AF" stopOpacity="0.85" />
+                    </linearGradient>
+                    <linearGradient id="core-glow" x1="60" y1="40" x2="60" y2="80" gradientUnits="userSpaceOnUse">
+                      <stop offset="0%" stopColor="#60A5FA" stopOpacity="0.8" />
+                      <stop offset="100%" stopColor="#1D4ED8" stopOpacity="0" />
+                    </linearGradient>
+                    <filter id="cube-glow" x="-20%" y="-20%" width="140%" height="140%">
+                      <feGaussianBlur stdDeviation="8" result="blur" />
+                    </filter>
+                  </defs>
+                  <circle cx="60" cy="62" r="16" fill="url(#core-glow)" filter="url(#cube-glow)" />
+                  <circle cx="60" cy="62" r="8" fill="#93C5FD" opacity="0.7" />
+                  <line x1="60" y1="88" x2="60" y2="62" stroke="rgba(255,255,255,0.3)" strokeWidth="1" strokeDasharray="2 2" />
+                  <line x1="32" y1="50" x2="60" y2="62" stroke="rgba(255,255,255,0.3)" strokeWidth="1" strokeDasharray="2 2" />
+                  <line x1="88" y1="50" x2="60" y2="62" stroke="rgba(255,255,255,0.3)" strokeWidth="1" strokeDasharray="2 2" />
+                  <polygon points="60,15 108,40 60,65 12,40" fill="url(#glass-top)" stroke="rgba(255,255,255,0.75)" strokeWidth="1.2" strokeLinejoin="round" />
+                  <polygon points="12,40 60,65 60,105 12,80" fill="url(#glass-left)" stroke="rgba(255,255,255,0.25)" strokeWidth="1" strokeLinejoin="round" />
+                  <polygon points="108,40 60,65 60,105 108,80" fill="url(#glass-right)" stroke="rgba(255,255,255,0.25)" strokeWidth="1" strokeLinejoin="round" />
+                  <line x1="60" y1="65" x2="60" y2="105" stroke="rgba(255,255,255,0.55)" strokeWidth="1.2" />
+                  <line x1="12" y1="40" x2="60" y2="65" stroke="rgba(255,255,255,0.5)" strokeWidth="1.2" />
+                  <line x1="108" y1="40" x2="60" y2="65" stroke="rgba(255,255,255,0.35)" strokeWidth="1.2" />
+                  <circle cx="60" cy="15" r="1.5" fill="#FFFFFF" />
+                  <circle cx="12" cy="40" r="1" fill="#FFFFFF" opacity="0.8" />
+                  <circle cx="108" cy="40" r="1" fill="#FFFFFF" opacity="0.8" />
+                </svg>
+              </div>
+
+              {/* Stat 1 */}
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px', paddingLeft: '80px' }}>
+                <div style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '9px',
+                  background: 'rgba(30, 80, 255, 0.08)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <Users style={{ width: '18px', height: '18px', color: '#1E50FF' }} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '19px', fontWeight: 800, color: '#0F172A', lineHeight: 1.1 }}>
+                    25K+
+                  </div>
+                  <div style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 600 }}>
+                    Active Users
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ width: '1px', height: '36px', background: 'rgba(30, 80, 255, 0.1)', margin: '0 16px' }} />
+
+              {/* Stat 2 */}
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '9px',
+                  background: 'rgba(30, 80, 255, 0.08)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <Clock style={{ width: '18px', height: '18px', color: '#1E50FF' }} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '19px', fontWeight: 800, color: '#0F172A', lineHeight: 1.1 }}>
+                    98%
+                  </div>
+                  <div style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 600 }}>
+                    Time Saved
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ width: '1px', height: '36px', background: 'rgba(30, 80, 255, 0.1)', margin: '0 16px' }} />
+
+              {/* Stat 3 */}
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '9px',
+                  background: 'rgba(30, 80, 255, 0.08)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <CheckCircle style={{ width: '18px', height: '18px', color: '#1E50FF' }} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '19px', fontWeight: 800, color: '#0F172A', lineHeight: 1.1 }}>
+                    99.9%
+                  </div>
+                  <div style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 600 }}>
+                    Uptime
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ width: '1px', height: '36px', background: 'rgba(30, 80, 255, 0.1)', margin: '0 16px' }} />
+
+              {/* Stat 4 */}
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '9px',
+                  background: 'rgba(30, 80, 255, 0.08)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <ShieldCheck style={{ width: '18px', height: '18px', color: '#1E50FF' }} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '19px', fontWeight: 800, color: '#0F172A', lineHeight: 1.1 }}>
+                    Enterprise
+                  </div>
+                  <div style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 600 }}>
+                    Grade Security
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* ── BOTTOM STATS BAR ── */}
-      <div style={{
-        position:'relative', zIndex:5,
-        display:'flex', alignItems:'stretch',
-        margin:'16px 48px 24px',
-        borderRadius:16,
-        overflow:'hidden'
-      }}>
-        {/* Middle stats (under middle section) */}
-        <div style={{ flex:1, display:'flex', background:'rgba(255,255,255,0.55)', backdropFilter:'blur(10px)', borderRadius:'16px 0 0 16px', overflow:'hidden' }}>
-          {[
-            { icon: <Users style={{ width:20, height:20, color:'#2563eb' }} />, val:'25K+', label:'Active Users' },
-            { icon: <Clock style={{ width:20, height:20, color:'#2563eb' }} />, val:'98%', label:'Time Saved' },
-          ].map((s, i) => (
-            <div key={i} style={{ flex:1, display:'flex', alignItems:'center', gap:12, padding:'16px 22px', borderRight: i===0 ? '1px solid rgba(37,99,235,0.12)' : 'none' }}>
-              <div style={{ width:38, height:38, borderRadius:10, background:'rgba(37,99,235,0.08)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                {s.icon}
-              </div>
-              <div>
-                <div style={{ fontSize:20, fontWeight:800, color:'#0f172a', lineHeight:1.1 }}>{s.val}</div>
-                <div style={{ fontSize:12, color:'#64748b', fontWeight:500 }}>{s.label}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-        {/* Right stats (under right card) */}
-        <div style={{ width:'32%', minWidth:340, display:'flex', background:'rgba(255,255,255,0.55)', backdropFilter:'blur(10px)', borderRadius:'0 16px 16px 0', overflow:'hidden', borderLeft:'1px solid rgba(37,99,235,0.1)' }}>
-          {[
-            { icon: <CheckCircle style={{ width:20, height:20, color:'#2563eb' }} />, val:'99.9%', label:'Uptime' },
-            { icon: <ShieldCheck style={{ width:20, height:20, color:'#2563eb' }} />, val:'Enterprise', label:'Grade Security' },
-          ].map((s, i) => (
-            <div key={i} style={{ flex:1, display:'flex', alignItems:'center', gap:12, padding:'16px 20px', borderRight: i===0 ? '1px solid rgba(37,99,235,0.12)' : 'none' }}>
-              <div style={{ width:38, height:38, borderRadius:10, background:'rgba(37,99,235,0.08)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                {s.icon}
-              </div>
-              <div>
-                <div style={{ fontSize:18, fontWeight:800, color:'#0f172a', lineHeight:1.1 }}>{s.val}</div>
-                <div style={{ fontSize:12, color:'#64748b', fontWeight:500 }}>{s.label}</div>
-              </div>
-            </div>
-          ))}
-        </div>
+        </main>
       </div>
     </div>
   );
