@@ -84,7 +84,7 @@ export interface BrandSettings {
 
 // ── Preview ───────────────────────────────────────────────────────────────────
 
-export type PreviewChannel = 'Email' | 'SMS' | 'Push' | 'In-App' | 'WhatsApp';
+export type PreviewChannel = 'Email' | 'SecureInbox' | 'SMS' | 'Push' | 'In-App' | 'WhatsApp';
 export type PreviewSegment = 'Retail' | 'Corporate' | 'Premium' | 'Commercial';
 export type PreviewDevice = 'desktop' | 'tablet' | 'mobile';
 
@@ -134,16 +134,23 @@ export interface ContentBuilderState {
   // Dynamic component definitions (loaded from service)
   componentDefs: ComponentDefinition[];
 
-  // Canvas
+  // Canvas per channel
+  componentsByChannel: Record<string, CanvasComponent[]>;
+  addComponent: (channel: string, def: ComponentDefinition) => void;
+  removeComponent: (channel: string, id: string) => void;
+  moveComponent: (channel: string, id: string, direction: 'up' | 'down') => void;
+  duplicateComponent: (channel: string, id: string) => void;
+  updateComponent: (channel: string, id: string, patch: Partial<CanvasComponent>) => void;
+  reorderComponents: (channel: string, from: number, to: number) => void;
+
+  // Single-channel compatibility helpers (resolves to previewChannel)
   components: CanvasComponent[];
-  addComponent: (def: ComponentDefinition) => void;
-  removeComponent: (id: string) => void;
-  moveComponent: (id: string, direction: 'up' | 'down') => void;
-  duplicateComponent: (id: string) => void;
-  updateComponent: (id: string, patch: Partial<CanvasComponent>) => void;
-  reorderComponents: (from: number, to: number) => void;
   selectedComponentId: string | null;
   setSelectedComponentId: (id: string | null) => void;
+
+  // Channel-specific selections
+  selectedComponentIdByChannel: Record<string, string | null>;
+  setSelectedComponentIdByChannel: (channel: string, id: string | null) => void;
 
   // Preview
   previewChannel: PreviewChannel;

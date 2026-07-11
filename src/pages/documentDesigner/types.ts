@@ -92,6 +92,7 @@ export interface DocumentElement {
   // Table specific
   columns?: TableColumn[];
   arrayBinding?: string;
+  tableType?: 'grid' | 'keyvalue';
 
   // Image specific
   imageUrl?: string;
@@ -158,6 +159,7 @@ export const COMPONENT_LIBRARY: ComponentLibraryItem[] = [
   { type: 'logo', label: 'Logo', icon: 'Building', category: 'Media', defaultWidth: 150, defaultHeight: 60 },
   { type: 'signature', label: 'Signature', icon: 'PenLine', category: 'Media', defaultWidth: 200, defaultHeight: 60 },
   { type: 'table', label: 'Table', icon: 'Table', category: 'Data', defaultWidth: 500, defaultHeight: 150 },
+  { type: 'table', label: 'Fields Table', icon: 'Table', category: 'Data', defaultWidth: 500, defaultHeight: 300 },
   { type: 'qrcode', label: 'QR Code', icon: 'QrCode', category: 'Data', defaultWidth: 80, defaultHeight: 80 },
   { type: 'barcode', label: 'Barcode', icon: 'Barcode', category: 'Data', defaultWidth: 200, defaultHeight: 60 },
   { type: 'checkbox', label: 'Checkbox', icon: 'CheckSquare', category: 'Input', defaultWidth: 140, defaultHeight: 24 },

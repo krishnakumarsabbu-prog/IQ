@@ -31,11 +31,21 @@ export const documentLayoutService = {
   async getAllLayouts(): Promise<DocumentTemplate[]> {
     try {
       const res = await fetch(`${API_BASE}/document-layouts`);
-      if (res.ok) return res.json();
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.length > 0) return data;
+      }
     } catch {
       // fall through to localStorage
     }
-    return getStoredLayouts();
+    const local = getStoredLayouts();
+    if (local.length > 0) {
+      return local;
+    }
+    // Seed default template
+    const defaultLayout = this.createDefaultWelcomeLetter();
+    setStoredLayouts([defaultLayout]);
+    return [defaultLayout];
   },
 
   async getLayout(id: string): Promise<DocumentTemplate | null> {
@@ -215,4 +225,118 @@ export const documentLayoutService = {
 
     return base;
   },
+
+  createDefaultWelcomeLetter(): DocumentTemplate {
+    const layout = this.createEmptyLayout('Welcome Letter Layout');
+    const page = layout.pages[0];
+    
+    // Add a title header
+    const title = this.createDefaultElement('statictext', 40, 40);
+    title.width = 515;
+    title.height = 40;
+    title.content = 'LOAN ACCOUNT AGREEMENT & WELCOME LETTER';
+    title.textStyle = {
+      fontFamily: 'Arial',
+      fontSize: 16,
+      bold: true,
+      italic: false,
+      underline: false,
+      strikethrough: false,
+      color: '#1e3a8a',
+      align: 'center',
+      lineHeight: 1.2,
+      letterSpacing: 0
+    };
+    
+    // Add today's date
+    const dateField = this.createDefaultElement('dynamicfield', 40, 100);
+    dateField.width = 150;
+    dateField.height = 20;
+    dateField.binding = { field: 'today', format: 'none' };
+    dateField.textStyle = {
+      fontFamily: 'Arial',
+      fontSize: 10,
+      bold: false,
+      italic: true,
+      underline: false,
+      strikethrough: false,
+      color: '#475569',
+      align: 'left',
+      lineHeight: 1.2,
+      letterSpacing: 0
+    };
+    
+    // Add text body
+    const body = this.createDefaultElement('statictext', 40, 130);
+    body.width = 515;
+    body.height = 80;
+    body.content = 'Dear {{customerName}},\n\nWe are pleased to inform you that your application for a loan with Wells Fargo Bank, N.A. has been approved. Below is a summary of your account details. Please review this information carefully and contact your support representative if you have any questions.';
+    body.textStyle = {
+      fontFamily: 'Arial',
+      fontSize: 11,
+      bold: false,
+      italic: false,
+      underline: false,
+      strikethrough: false,
+      color: '#334155',
+      align: 'left',
+      lineHeight: 1.4,
+      letterSpacing: 0
+    };
+
+    // Add a key-value Fields Table
+    const table = this.createDefaultElement('table', 40, 230);
+    table.tableType = 'keyvalue';
+    table.width = 515;
+    table.height = 150;
+    table.columns = [
+      { id: 'col_1', header: 'Customer Name', binding: 'customerName', width: 250 },
+      { id: 'col_2', header: 'Customer ID', binding: 'customerId', width: 250 },
+      { id: 'col_3', header: 'Loan Number', binding: 'loanNumber', width: 250 },
+      { id: 'col_4', header: 'Loan Amount', binding: 'loanAmount', width: 250 },
+      { id: 'col_5', header: 'Interest Rate', binding: 'interestRate', width: 250 },
+    ];
+
+    // Add signature area
+    const sigLabel = this.createDefaultElement('statictext', 40, 400);
+    sigLabel.width = 250;
+    sigLabel.height = 20;
+    sigLabel.content = 'Authorized Representative Signature:';
+    sigLabel.textStyle = {
+      fontFamily: 'Arial',
+      fontSize: 10,
+      bold: true,
+      italic: false,
+      underline: false,
+      strikethrough: false,
+      color: '#334155',
+      align: 'left',
+      lineHeight: 1.2,
+      letterSpacing: 0
+    };
+
+    const sigLine = this.createDefaultElement('hline', 40, 450);
+    sigLine.width = 200;
+    sigLine.height = 10;
+
+    const companyName = this.createDefaultElement('statictext', 40, 465);
+    companyName.width = 200;
+    companyName.height = 20;
+    companyName.content = 'Wells Fargo Bank, N.A.';
+    companyName.textStyle = {
+      fontFamily: 'Arial',
+      fontSize: 10,
+      bold: false,
+      italic: false,
+      underline: false,
+      strikethrough: false,
+      color: '#475569',
+      align: 'left',
+      lineHeight: 1.2,
+      letterSpacing: 0
+    };
+
+    page.elements = [title, dateField, body, table, sigLabel, sigLine, companyName];
+    return layout;
+  }
 };

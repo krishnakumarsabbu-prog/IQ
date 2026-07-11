@@ -9,6 +9,7 @@ import RightPanel from './RightPanel';
 import { DocumentTemplate, DocumentElement, MongoField } from './types';
 import { documentLayoutService } from './documentLayoutService';
 import { exportToDocx } from './exportDocx';
+import { exportToPdf } from './exportPdf';
 import { TreeNode } from './LeftPanel';
 import { FileText, Plus, FolderOpen, X, ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -156,6 +157,18 @@ const DocumentLayoutDesigner: React.FC = () => {
 
   function handleAddElement(el: DocumentElement) {
     if (!activeTemplate) return;
+    
+    // If it's a keyvalue table, populate it with all mongo fields!
+    if (el.type === 'table' && el.tableType === 'keyvalue') {
+      el.columns = mongoFields.map(f => ({
+        id: `col_${f.id}_${Date.now()}_${Math.random().toString(36).slice(2, 5)}`,
+        header: f.label,
+        binding: f.id,
+        width: 250,
+      }));
+      el.height = Math.max(150, 30 + mongoFields.length * 24);
+    }
+
     const page = getPage(activeTemplate);
     const elements = [...page.elements, { ...el, zIndex: page.elements.length }];
     const updated = updatePageElements(activeTemplate, elements);
@@ -310,12 +323,38 @@ const DocumentLayoutDesigner: React.FC = () => {
 
   async function handleExportDocx() {
     if (!activeTemplate) return;
-    await exportToDocx(activeTemplate, previewMode ? PREVIEW_DATA : undefined);
+    setIsSaving(true);
+    let templateToExport = activeTemplate;
+    try {
+      const saved = await documentLayoutService.saveLayout(activeTemplate);
+      setActiveTemplate(saved);
+      templateToExport = saved;
+      const all = await documentLayoutService.getAllLayouts();
+      setTemplates(all);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsSaving(false);
+    }
+    await exportToDocx(templateToExport, previewMode ? PREVIEW_DATA : undefined);
   }
 
   async function handleExportPdf() {
     if (!activeTemplate) return;
-    alert('PDF export requires react-pdf/renderer. Feature coming soon.');
+    setIsSaving(true);
+    let templateToExport = activeTemplate;
+    try {
+      const saved = await documentLayoutService.saveLayout(activeTemplate);
+      setActiveTemplate(saved);
+      templateToExport = saved;
+      const all = await documentLayoutService.getAllLayouts();
+      setTemplates(all);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsSaving(false);
+    }
+    await exportToPdf(templateToExport, previewMode ? PREVIEW_DATA : undefined);
   }
 
   function handleNewTemplate() {
@@ -505,6 +544,7 @@ const DocumentLayoutDesigner: React.FC = () => {
             selectedIds={selectedIds}
             documentTree={documentTree}
             onSelectElement={id => setSelectedIds([id])}
+            onAddElement={handleAddElement}
           />
 
           {/* Canvas area with page controls */}

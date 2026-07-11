@@ -89,6 +89,7 @@ function PlaceholderPopup({
 }
 
 interface CanvasRowProps {
+  channel: string;
   comp: CanvasComponent;
   index: number;
   total: number;
@@ -102,6 +103,7 @@ interface CanvasRowProps {
 }
 
 function CanvasRow({
+  channel,
   comp, index, total, isSelected, htmlViewActive, onSelect,
   onDragStart, onDragOver, onDrop, onDragEnd,
 }: CanvasRowProps) {
@@ -197,7 +199,7 @@ function CanvasRow({
           <button
             type="button"
             onClick={e => { e.stopPropagation(); setShowKind(v => !v); }}
-            className="flex items-center justify-between gap-1.5 text-xs font-bold text-slate-750 dark:text-slate-300
+            className="flex items-center justify-between gap-1.5 text-xs font-bold text-slate-755 dark:text-slate-300
               bg-slate-100/80 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700
               px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700
               transition-all duration-100 w-32 flex-shrink-0"
@@ -216,7 +218,7 @@ function CanvasRow({
                   <button key={d.kind} type="button"
                     onClick={e => {
                       e.stopPropagation();
-                      updateComponent(comp.id, {
+                      updateComponent(channel, comp.id, {
                         kind: d.kind as ComponentKind, label: d.label,
                         text: d.defaultText, url: d.defaultUrl,
                       });
@@ -248,12 +250,12 @@ function CanvasRow({
               <div className="relative flex-1 min-w-0 flex items-center">
                 <select
                   value={comp.text || 'Go to account'}
-                  onChange={e => updateComponent(comp.id, { text: e.target.value })}
+                  onChange={e => updateComponent(channel, comp.id, { text: e.target.value })}
                   onClick={e => e.stopPropagation()}
-                  className="flex-1 text-xs text-slate-750 dark:text-slate-200 bg-transparent
+                  className="flex-1 text-xs text-slate-755 dark:text-slate-200 bg-transparent
                     outline-none border-none py-0 w-full cursor-pointer font-semibold appearance-none pr-6"
                 >
-                  {['Go to account', 'View Details', 'Quick Pay', 'Sign In', 'Register Now', 'Learn More'].map(opt => (
+                  {['Go to account', 'View Details', 'Quick Pay', 'Sign In', 'Register Now', 'Learn More', 'Verify Transaction', 'Confirm Purchase'].map(opt => (
                     <option key={opt} value={opt} className="bg-white dark:bg-slate-900 text-slate-755">
                       {opt}
                     </option>
@@ -265,7 +267,7 @@ function CanvasRow({
               htmlViewActive ? (
                 <textarea
                   value={comp.text || ''}
-                  onChange={e => updateComponent(comp.id, { text: e.target.value })}
+                  onChange={e => updateComponent(channel, comp.id, { text: e.target.value })}
                   onClick={e => e.stopPropagation()}
                   rows={1}
                   className="flex-1 text-xs text-indigo-650 dark:text-indigo-400 bg-transparent
@@ -277,13 +279,13 @@ function CanvasRow({
                   ref={contentEditableRef}
                   contentEditable
                   data-component-id={comp.id}
-                  onInput={e => updateComponent(comp.id, { text: e.currentTarget.innerHTML })}
+                  onInput={e => updateComponent(channel, comp.id, { text: e.currentTarget.innerHTML })}
                   onPaste={e => {
                     e.preventDefault();
                     const text = e.clipboardData.getData('text/plain');
                     document.execCommand('insertText', false, text);
                   }}
-                  className="flex-1 text-xs text-slate-750 dark:text-slate-200 bg-transparent
+                  className="flex-1 text-xs text-slate-755 dark:text-slate-200 bg-transparent
                     outline-none min-w-0 leading-5 py-0.5 cursor-text min-h-[1.25rem]
                     [&_code]:bg-indigo-50 [&_code]:text-indigo-600 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:font-mono [&_code]:text-[11px]
                     dark:[&_code]:bg-indigo-950/40 dark:[&_code]:text-indigo-400"
@@ -292,7 +294,7 @@ function CanvasRow({
               )
             ) : (
               <span
-                className="flex-1 text-xs text-slate-750 dark:text-slate-400 truncate min-w-0
+                className="flex-1 text-xs text-slate-755 dark:text-slate-400 truncate min-w-0
                   hover:text-slate-800 dark:hover:text-slate-250 transition-colors cursor-text
                   [&_code]:bg-indigo-50 [&_code]:text-indigo-600 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:font-mono [&_code]:text-[11px]
                   dark:[&_code]:bg-indigo-950/40 dark:[&_code]:text-indigo-400"
@@ -327,7 +329,7 @@ function CanvasRow({
 
           {/* Move up */}
           <button type="button" title="Move up" disabled={isFirst}
-            onClick={() => moveComponent(comp.id, 'up')}
+            onClick={() => moveComponent(channel, comp.id, 'up')}
             className="w-7 h-7 flex items-center justify-center rounded-md transition-all duration-150
               hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400
               hover:text-slate-700 dark:hover:text-slate-200
@@ -338,7 +340,7 @@ function CanvasRow({
 
           {/* Move down */}
           <button type="button" title="Move down" disabled={isLast}
-            onClick={() => moveComponent(comp.id, 'down')}
+            onClick={() => moveComponent(channel, comp.id, 'down')}
             className="w-7 h-7 flex items-center justify-center rounded-md transition-all duration-150
               hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400
               hover:text-slate-700 dark:hover:text-slate-200
@@ -351,7 +353,7 @@ function CanvasRow({
 
           {/* Duplicate */}
           <button type="button" title="Duplicate"
-            onClick={() => duplicateComponent(comp.id)}
+            onClick={() => duplicateComponent(channel, comp.id)}
             className="w-7 h-7 flex items-center justify-center rounded-md transition-all duration-150
               hover:bg-emerald-50 dark:hover:bg-emerald-950/30 text-slate-500 dark:text-slate-400
               hover:text-emerald-600 dark:hover:text-emerald-400"
@@ -361,7 +363,7 @@ function CanvasRow({
 
           {/* Delete */}
           <button type="button" title="Delete"
-            onClick={() => removeComponent(comp.id)}
+            onClick={() => removeComponent(channel, comp.id)}
             className="w-7 h-7 flex items-center justify-center rounded-md transition-all duration-150
               hover:bg-rose-50 dark:hover:bg-rose-950/30 text-slate-500 dark:text-slate-400
               hover:text-rose-600 dark:hover:text-rose-400"
@@ -384,11 +386,11 @@ function CanvasRow({
               onClick={e => e.stopPropagation()}>
               <input
                 type="url"
-                className="flex-1 text-xs text-slate-750 dark:text-slate-200 bg-transparent
+                className="flex-1 text-xs text-slate-755 dark:text-slate-200 bg-transparent
                   outline-none border-none py-0 min-w-0"
                 placeholder="https://..."
                 value={comp.url ?? ''}
-                onChange={e => updateComponent(comp.id, { url: e.target.value })}
+                onChange={e => updateComponent(channel, comp.id, { url: e.target.value })}
                 onClick={e => e.stopPropagation()}
               />
             </div>
@@ -409,7 +411,7 @@ function CanvasRow({
                 type="button"
                 onClick={e => { e.stopPropagation(); imageInputRef.current?.click(); }}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold
-                  text-indigo-650 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/60
+                  text-indigo-655 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/60
                   rounded-lg transition-colors cursor-pointer"
               >
                 <Upload className="h-3 w-3" />
@@ -424,7 +426,7 @@ function CanvasRow({
                   const file = e.target.files?.[0];
                   if (file) {
                     const url = URL.createObjectURL(file);
-                    updateComponent(comp.id, { url });
+                    updateComponent(channel, comp.id, { url });
                   }
                 }}
               />
@@ -516,15 +518,17 @@ function BrandBar() {
 // ── Canvas toolbar ────────────────────────────────────────────────────────────
 
 function CanvasToolbar({
+  channel,
   onPlaceholder,
   htmlViewActive,
   setHtmlViewActive,
 }: {
+  channel: string;
   onPlaceholder: (btn: HTMLButtonElement) => void;
   htmlViewActive: boolean;
   setHtmlViewActive: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const { selectedComponentId, updateComponent, components } = useContentBuilderContext();
+  const { selectedComponentIdByChannel, updateComponent, componentsByChannel } = useContentBuilderContext();
 
   const [enabledSymbols, setEnabledSymbols] = useState<string[]>(() => {
     const saved = localStorage.getItem('alertsiq:ckeditor:symbols');
@@ -553,6 +557,8 @@ function CanvasToolbar({
     };
   }, []);
 
+  const selectedComponentId = selectedComponentIdByChannel[channel] || null;
+  const components = componentsByChannel[channel] || [];
   const activeComp = components.find(c => c.id === selectedComponentId);
   const isTextKind = activeComp && ['pageheader', 'heading', 'subheading', 'paragraph', 'richtext', 'quote'].includes(activeComp.kind);
   const isEnabled = !!isTextKind;
@@ -605,7 +611,7 @@ function CanvasToolbar({
     }
 
     if (activeEl && selectedComponentId) {
-      updateComponent(selectedComponentId, { text: activeEl.innerHTML });
+      updateComponent(channel, selectedComponentId, { text: activeEl.innerHTML });
     }
   };
 
@@ -650,7 +656,7 @@ function CanvasToolbar({
                   ? 'bg-indigo-600 text-white shadow-sm'
                   : isButtonDisabled
                     ? 'opacity-40 cursor-not-allowed pointer-events-none text-slate-400 dark:text-slate-600'
-                    : 'text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer'
+                    : 'text-slate-505 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer'
                 }`}
             >
               <Icon className="h-3.5 w-3.5" />
@@ -667,7 +673,7 @@ function CanvasToolbar({
         onClick={e => onPlaceholder(e.currentTarget as HTMLButtonElement)}
         className={`flex items-center gap-1 h-6 px-2 text-[10px] font-bold rounded-lg transition-colors border
           ${isEnabled && !htmlViewActive
-            ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 border-indigo-200/60 dark:border-indigo-700/40 hover:bg-indigo-100 dark:hover:bg-indigo-950/60'
+            ? 'text-indigo-650 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 border-indigo-200/60 dark:border-indigo-700/40 hover:bg-indigo-100 dark:hover:bg-indigo-950/60'
             : 'text-slate-400 dark:text-slate-600 bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 opacity-40 cursor-not-allowed pointer-events-none'
           }`}
       >
@@ -680,15 +686,21 @@ function CanvasToolbar({
 
 // ── Main Panel ────────────────────────────────────────────────────────────────
 
-export default function ContentBuilderPanel() {
+export default function ContentBuilderPanel({ channel }: { channel: string }) {
   const {
-    components, addComponent, reorderComponents,
-    selectedComponentId, setSelectedComponentId, componentDefs,
+    componentsByChannel, addComponent, reorderComponents,
+    selectedComponentIdByChannel, setSelectedComponentIdByChannel, componentDefs,
   } = useContentBuilderContext();
 
   const [phAnchor, setPhAnchor] = useState<HTMLButtonElement | null>(null);
   const [htmlViewActive, setHtmlViewActive] = useState<boolean>(false);
   const dragIdx = useRef<number | null>(null);
+
+  const components = componentsByChannel[channel] || [];
+  const selectedComponentId = selectedComponentIdByChannel[channel] || null;
+  const setSelectedComponentId = useCallback((id: string | null) => {
+    setSelectedComponentIdByChannel(channel, id);
+  }, [channel, setSelectedComponentIdByChannel]);
 
   useEffect(() => {
     setHtmlViewActive(false);
@@ -708,31 +720,21 @@ export default function ContentBuilderPanel() {
   const onDrop = useCallback((e: React.DragEvent, toIdx: number) => {
     e.preventDefault();
     const from = parseInt(e.dataTransfer.getData('text/plain'), 10);
-    if (!isNaN(from) && from !== toIdx) reorderComponents(from, toIdx);
+    if (!isNaN(from) && from !== toIdx) reorderComponents(channel, from, toIdx);
     dragIdx.current = null;
-  }, [reorderComponents]);
+  }, [reorderComponents, channel]);
 
   const onDragEnd = useCallback(() => { dragIdx.current = null; }, []);
 
   const handleAdd = useCallback(() => {
     const def = componentDefs.find(d => d.kind === 'paragraph') ?? componentDefs[0];
-    if (def) addComponent(def);
-  }, [componentDefs, addComponent]);
+    if (def) addComponent(channel, def);
+  }, [componentDefs, addComponent, channel]);
 
   const sorted = [...components].sort((a, b) => a.order - b.order);
 
   return (
     <div className="flex flex-col h-full min-h-0 bg-white dark:bg-slate-950">
-
-      {/* ── CONTENT BUILDER label bar — gray ── */}
-      <div className="flex items-center gap-2.5 px-4 h-12
-        bg-slate-100 dark:bg-slate-900/80
-        border-b border-slate-200 dark:border-slate-800 flex-shrink-0">
-        <span className="w-[3px] h-4 rounded-full bg-indigo-600" />
-        <span className="text-[11px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-widest">
-          Content Builder
-        </span>
-      </div>
 
       {/* ── Brand controls bar — white ── */}
       <BrandBar />
@@ -748,6 +750,7 @@ export default function ContentBuilderPanel() {
           </span>
         </div>
         <CanvasToolbar
+          channel={channel}
           onPlaceholder={btn => setPhAnchor(btn)}
           htmlViewActive={htmlViewActive}
           setHtmlViewActive={setHtmlViewActive}
@@ -775,6 +778,7 @@ export default function ContentBuilderPanel() {
           sorted.map((comp, idx) => (
             <CanvasRow
               key={comp.id}
+              channel={channel}
               comp={comp}
               index={idx}
               total={sorted.length}
@@ -798,9 +802,9 @@ export default function ContentBuilderPanel() {
         <button type="button" onClick={handleAdd}
           className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl
             border border-dashed border-slate-300 dark:border-slate-700
-            text-[11px] font-bold text-slate-500 dark:text-slate-400
+            text-[11px] font-bold text-slate-550 dark:text-slate-400
             hover:border-indigo-400 dark:hover:border-indigo-600
-            hover:text-indigo-600 dark:hover:text-indigo-400
+            hover:text-indigo-650 dark:hover:text-indigo-400
             hover:bg-indigo-50/50 dark:hover:bg-indigo-950/20
             transition-all duration-150 group">
           <div className="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800
@@ -834,16 +838,16 @@ export default function ContentBuilderPanel() {
                 selection.removeAllRanges();
                 selection.addRange(range);
                 
-                updateComponent(selectedComponentId!, { text: activeEl.innerHTML });
+                updateComponent(channel, selectedComponentId!, { text: activeEl.innerHTML });
               } else {
                 const compText = activeComp?.text || '';
                 const newVal = compText + ' ' + v + ' ';
-                updateComponent(selectedComponentId!, { text: newVal });
+                updateComponent(channel, selectedComponentId!, { text: newVal });
                 activeEl.innerHTML = newVal;
               }
             } else if (selectedComponentId) {
               const compText = activeComp?.text || '';
-              updateComponent(selectedComponentId, { text: compText + ' ' + v + ' ' });
+              updateComponent(channel, selectedComponentId, { text: compText + ' ' + v + ' ' });
             }
           }}
         />

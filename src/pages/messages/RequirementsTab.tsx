@@ -8,11 +8,15 @@
  *   - Dynamic form canvas.
  */
 
-import { useState, useMemo } from 'react';
-import { Download, Save, Bookmark, Search, X, Check, ArrowRight } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { Download, Save, Bookmark, Search, X, Check, ArrowRight, FileText } from 'lucide-react';
 import { useMessageFormContext } from './useMessageForm';
 import DynamicFormRenderer from './DynamicFormRenderer';
 import FollowUpTab from './FollowUpTab';
+import { documentLayoutService } from '../documentDesigner/documentLayoutService';
+import { exportToDocx } from '../documentDesigner/exportDocx';
+import { exportToPdf } from '../documentDesigner/exportPdf';
+import { DocumentTemplate } from '../documentDesigner/types';
 
 export default function RequirementsTab() {
   const {
@@ -38,6 +42,50 @@ export default function RequirementsTab() {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [importSearch, setImportSearch] = useState('');
   const [successBanner, setSuccessBanner] = useState<string | null>(null);
+
+  const [layouts, setLayouts] = useState<DocumentTemplate[]>([]);
+  const [selectedLayoutId, setSelectedLayoutId] = useState<string>('');
+
+  useEffect(() => {
+    async function loadLayouts() {
+      try {
+        const list = await documentLayoutService.getAllLayouts();
+        setLayouts(list);
+        if (list.length > 0) {
+          setSelectedLayoutId(list[0].id || '');
+        }
+      } catch (e) {
+        console.error('Failed to load document layouts:', e);
+      }
+    }
+    loadLayouts();
+  }, []);
+
+  const handleDownloadDocx = async () => {
+    const layout = layouts.find(l => l.id === selectedLayoutId);
+    if (!layout) {
+      alert('Please select a document layout first.');
+      return;
+    }
+    const populatedValues = {
+      today: new Date().toLocaleDateString(),
+      ...formValues
+    };
+    await exportToDocx(layout, populatedValues);
+  };
+
+  const handleDownloadPdf = async () => {
+    const layout = layouts.find(l => l.id === selectedLayoutId);
+    if (!layout) {
+      alert('Please select a document layout first.');
+      return;
+    }
+    const populatedValues = {
+      today: new Date().toLocaleDateString(),
+      ...formValues
+    };
+    await exportToPdf(layout, populatedValues);
+  };
 
   // Filter messages for the import modal
   const filteredImportMessages = useMemo(() => {
@@ -144,8 +192,42 @@ export default function RequirementsTab() {
             className="bg-white dark:bg-slate-900 border border-slate-250 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-white px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all shadow-[0_2px_5px_rgba(0,0,0,0.02)]"
           >
             <Download className="h-4 w-4 text-emerald-500" />
-            Export
+            Export Config
           </button>
+
+          {/* Document Generator Section */}
+          <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/80 p-1.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-inner">
+            <select
+              value={selectedLayoutId}
+              onChange={(e) => setSelectedLayoutId(e.target.value)}
+              className="bg-transparent text-slate-700 dark:text-white text-xs font-bold px-2.5 py-1 outline-none cursor-pointer max-w-[160px] truncate"
+            >
+              <option value="" disabled className="bg-white dark:bg-slate-900">Choose Layout</option>
+              {layouts.map(layout => (
+                <option key={layout.id} value={layout.id} className="bg-white dark:bg-slate-900">{layout.name}</option>
+              ))}
+            </select>
+            
+            <button
+              type="button"
+              onClick={handleDownloadDocx}
+              className="bg-white dark:bg-slate-900 hover:bg-blue-50 dark:hover:bg-slate-700 text-blue-600 dark:text-blue-400 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border border-slate-200 dark:border-slate-700 flex items-center gap-1 shadow-sm"
+              title="Download Word Document"
+            >
+              <FileText className="h-3.5 w-3.5 text-blue-500" />
+              Word
+            </button>
+
+            <button
+              type="button"
+              onClick={handleDownloadPdf}
+              className="bg-white dark:bg-slate-900 hover:bg-red-50 dark:hover:bg-slate-700 text-red-600 dark:text-red-400 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border border-slate-200 dark:border-slate-700 flex items-center gap-1 shadow-sm"
+              title="Download PDF Document"
+            >
+              <FileText className="h-3.5 w-3.5 text-red-500" />
+              PDF
+            </button>
+          </div>
 
           {/* 4. Update Message (Only visible when editing an existing message) */}
           {isEditingExistingMessage && (

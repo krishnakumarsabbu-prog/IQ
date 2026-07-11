@@ -267,19 +267,27 @@ const RightPanel: React.FC<RightPanelProps> = ({ selectedElement, mongoFields, t
 
       {/* Table */}
       {el.type === 'table' && (
-        <Section title="Table Settings">
-          <Field label="Binding">
-            <TextInput
-              value={el.arrayBinding || ''}
-              onChange={v => updateEl({ arrayBinding: v })}
-              placeholder="loanAccounts[]"
-            />
-          </Field>
-          <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mt-2 mb-1">Columns</div>
+        <Section title={el.tableType === 'keyvalue' ? "Fields Table Settings" : "Table Settings"}>
+          {el.tableType !== 'keyvalue' && (
+            <Field label="Binding">
+              <TextInput
+                value={el.arrayBinding || ''}
+                onChange={v => updateEl({ arrayBinding: v })}
+                placeholder="loanAccounts[]"
+              />
+            </Field>
+          )}
+          
+          <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mt-2 mb-1">
+            {el.tableType === 'keyvalue' ? "Table Rows (Key-Value)" : "Columns"}
+          </div>
+          
           {(el.columns || []).map((col, i) => (
             <div key={col.id} className="bg-slate-50 dark:bg-slate-800 rounded p-2 space-y-1">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] text-slate-400">Column {i + 1}</span>
+                <span className="text-[10px] text-slate-400">
+                  {el.tableType === 'keyvalue' ? `Row ${i + 1}` : `Column ${i + 1}`}
+                </span>
                 <button
                   onClick={() => updateEl({ columns: el.columns?.filter((_, idx) => idx !== i) })}
                   className="text-[10px] text-red-500 hover:text-red-700"
@@ -294,27 +302,74 @@ const RightPanel: React.FC<RightPanelProps> = ({ selectedElement, mongoFields, t
                   cols[i] = { ...cols[i], header: v };
                   updateEl({ columns: cols });
                 }}
-                placeholder="Header"
+                placeholder={el.tableType === 'keyvalue' ? "Field Name" : "Header"}
               />
-              <TextInput
-                value={col.binding}
-                onChange={v => {
-                  const cols = [...(el.columns || [])];
-                  cols[i] = { ...cols[i], binding: v };
-                  updateEl({ columns: cols });
-                }}
-                placeholder="Field binding"
-              />
+              {el.tableType === 'keyvalue' ? (
+                <select
+                  value={col.binding}
+                  onChange={e => {
+                    const cols = [...(el.columns || [])];
+                    cols[i] = { ...cols[i], binding: e.target.value };
+                    updateEl({ columns: cols });
+                  }}
+                  className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-2 py-1 text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-400"
+                >
+                  <option value="">-- Select Field --</option>
+                  {mongoFields.map(f => (
+                    <option key={f.id} value={f.id}>{f.label}</option>
+                  ))}
+                </select>
+              ) : (
+                <TextInput
+                  value={col.binding}
+                  onChange={v => {
+                    const cols = [...(el.columns || [])];
+                    cols[i] = { ...cols[i], binding: v };
+                    updateEl({ columns: cols });
+                  }}
+                  placeholder="Field binding"
+                />
+              )}
             </div>
           ))}
+          
           <button
             onClick={() => updateEl({
-              columns: [...(el.columns || []), { id: `col_${Date.now()}`, header: 'New Column', binding: '', width: 120 }]
+              columns: [
+                ...(el.columns || []),
+                {
+                  id: `col_${Date.now()}_${Math.random().toString(36).slice(2, 5)}`,
+                  header: el.tableType === 'keyvalue' ? 'New Field' : 'New Column',
+                  binding: '',
+                  width: el.tableType === 'keyvalue' ? 250 : 120
+                }
+              ]
             })}
             className="w-full text-xs text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 rounded py-1 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
           >
-            + Add Column
+            {el.tableType === 'keyvalue' ? "+ Add Row" : "+ Add Column"}
           </button>
+
+          {el.tableType === 'keyvalue' && (
+            <button
+              onClick={() => {
+                const confirmReset = window.confirm("Are you sure you want to reset the table to all available fields?");
+                if (!confirmReset) return;
+                updateEl({
+                  columns: mongoFields.map(f => ({
+                    id: `col_${f.id}_${Date.now()}_${Math.random().toString(36).slice(2, 5)}`,
+                    header: f.label,
+                    binding: f.id,
+                    width: 250
+                  })),
+                  height: Math.max(150, 30 + mongoFields.length * 24)
+                });
+              }}
+              className="w-full mt-2 text-xs text-slate-500 dark:text-slate-400 hover:text-red-500 border border-dashed border-slate-200 dark:border-slate-800 rounded py-1 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+            >
+              Reset to All Fields
+            </button>
+          )}
         </Section>
       )}
 

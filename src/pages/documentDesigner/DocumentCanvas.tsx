@@ -97,6 +97,8 @@ function CanvasElement({
   const commonProps = {
     x: el.x,
     y: el.y,
+    width: el.width,
+    height: el.height,
     opacity,
     visible,
     rotation: el.rotation || 0,
@@ -104,6 +106,60 @@ function CanvasElement({
     onClick: onSelect,
     onTap: onSelect,
     onDragEnd: handleDragEnd,
+  };
+
+  const MOCK_FALLBACK: Record<string, string> = {
+    customerName: 'John Smith',
+    customerId: 'CUST-001234',
+    customerAddress: '1234 Main Street, Charlotte, NC 28201',
+    customerNumber: '7891234560',
+    loanNumber: 'LN-2024-98765',
+    loanAmount: '$125,000.00',
+    interestRate: '6.75%',
+    loanStatus: 'Active',
+    companyName: 'Wells Fargo Bank, N.A.',
+    companyAddress: '420 Montgomery Street, San Francisco, CA 94104',
+    companyPhone: '1-800-869-3557',
+    companyEmail: 'support@wellsfargo.com',
+    today: new Date().toLocaleDateString(),
+    employeeId: 'EMP-9988',
+    branchCode: 'BR-304',
+    accountBalance: '$45,230.15',
+    dueDate: '08/15/2026',
+    referenceNumber: 'REF-8827-X'
+  };
+
+  const getValue = (key: string): string => {
+    if (previewData && previewData[key] !== undefined && previewData[key] !== '') {
+      return String(previewData[key]);
+    }
+    if (key === 'customerId' && previewData?.messageId) return String(previewData.messageId);
+    if (key === 'customerName' && previewData?.messageName) return String(previewData.messageName);
+    if (key === 'today') return new Date().toLocaleDateString();
+
+    return MOCK_FALLBACK[key] !== undefined ? MOCK_FALLBACK[key] : `{{${key}}}`;
+  };
+
+  const resolveText = (el: DocumentElement): string => {
+    let text = '';
+    if (el.binding?.field) {
+      const val = getValue(el.binding.field);
+      const fmt = el.binding.format;
+      if (fmt === 'uppercase') text = val.toUpperCase();
+      else if (fmt === 'lowercase') text = val.toLowerCase();
+      else if (fmt === 'titlecase') text = val.replace(/\b\w/g, c => c.toUpperCase());
+      else text = val;
+    } else {
+      text = el.content || '';
+    }
+
+    if (previewMode) {
+      return text.replace(/\{\{([^}]+)\}\}/g, (match, key) => {
+        const trimmedKey = key.trim();
+        return getValue(trimmedKey);
+      });
+    }
+    return text;
   };
 
   const renderShape = () => {
@@ -129,7 +185,13 @@ function CanvasElement({
             <Text
               width={el.width}
               height={el.height}
-              text={content || (el.binding ? `{{${el.binding.field || 'field'}}}` : 'Text')}
+              text={
+                previewMode
+                  ? resolveText(el)
+                  : el.binding?.field
+                  ? `{{${el.binding.field}}}`
+                  : el.content || 'Text'
+              }
               fontFamily={textStyle?.fontFamily || 'Arial'}
               fontSize={textStyle?.fontSize || 12}
               fontStyle={`${textStyle?.bold ? 'bold' : ''} ${textStyle?.italic ? 'italic' : ''}`.trim() || 'normal'}
@@ -288,6 +350,53 @@ function CanvasElement({
         );
 
       case 'table':
+        if (el.tableType === 'keyvalue') {
+          const rowH = 24;
+          const col1W = el.width * 0.45;
+          const col2W = el.width * 0.55;
+          const items = el.columns || [];
+
+          return (
+            <Group ref={shapeRef} {...commonProps} onTransformEnd={handleTransformEnd}>
+              {/* Background */}
+              <Rect width={el.width} height={el.height} fill="#fff" stroke="#cbd5e1" strokeWidth={1} />
+              
+              {/* Header row background */}
+              <Rect x={0} y={0} width={el.width} height={rowH} fill="#f1f5f9" />
+              
+              {/* Header Texts */}
+              <Text x={6} y={6} width={col1W - 12} text="Field Name" fontSize={10} fill="#334155" fontStyle="bold" />
+              <Text x={col1W + 6} y={6} width={col2W - 12} text="Field Value" fontSize={10} fill="#334155" fontStyle="bold" />
+              
+              {/* Header separation line */}
+              <Line points={[0, rowH, el.width, rowH]} stroke="#cbd5e1" strokeWidth={1} />
+              
+              {/* Rows */}
+              {items.map((col, idx) => {
+                const yPos = rowH + idx * rowH;
+                const isVisible = yPos + rowH <= el.height;
+
+                // Resolve preview value
+                const valStr = previewMode ? getValue(col.binding) : `{{${col.binding}}}`;
+
+                return (
+                  <Group key={col.id} visible={isVisible}>
+                    {/* Row separator */}
+                    <Line points={[0, yPos + rowH, el.width, yPos + rowH]} stroke="#e2e8f0" strokeWidth={1} />
+                    {/* Field label (Col 1) */}
+                    <Text x={6} y={yPos + 6} width={col1W - 12} text={col.header} fontSize={10} fill="#475569" />
+                    {/* Field value (Col 2) */}
+                    <Text x={col1W + 6} y={yPos + 6} width={col2W - 12} text={valStr} fontSize={10} fill="#0f172a" fontStyle={previewMode ? "normal" : "italic"} />
+                  </Group>
+                );
+              })}
+
+              {/* Vertical separation line */}
+              <Line points={[col1W, 0, col1W, el.height]} stroke="#cbd5e1" strokeWidth={1} />
+            </Group>
+          );
+        }
+
         return (
           <Group ref={shapeRef} {...commonProps} onTransformEnd={handleTransformEnd}>
             <Rect width={el.width} height={el.height} fill="#fff" stroke="#e2e8f0" strokeWidth={1} />
@@ -300,7 +409,7 @@ function CanvasElement({
                 <Group key={col.id}>
                   <Line points={[colX, 0, colX, el.height]} stroke="#e2e8f0" strokeWidth={1} />
                   <Text x={colX + 4} y={6} width={colW - 8} text={col.header} fontSize={10} fill="#475569" fontStyle="bold" />
-                  <Text x={colX + 4} y={36} width={colW - 8} text={`{{${col.binding}}}`} fontSize={10} fill="#94a3b8" fontStyle="italic" />
+                  <Text x={colX + 4} y={36} width={colW - 8} text={previewMode ? getValue(col.binding || '') : `{{${col.binding}}}`} fontSize={10} fill="#94a3b8" fontStyle="italic" />
                 </Group>
               );
             })}
@@ -393,6 +502,7 @@ const DocumentCanvas: React.FC<DocumentCanvasProps> = ({
   const handleStageDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     const type = e.dataTransfer.getData('elementType');
+    const tableType = e.dataTransfer.getData('tableType');
     if (!type || !stageRef.current) return;
     const stage = stageRef.current;
     stage.setPointersPositions(e.nativeEvent);
@@ -402,6 +512,9 @@ const DocumentCanvas: React.FC<DocumentCanvasProps> = ({
     const relY = Math.round((pos.y - offsetY) / scale);
     if (relX < 0 || relY < 0 || relX > paperW || relY > paperH) return;
     const newEl = documentLayoutService.createDefaultElement(type, relX, relY);
+    if (tableType) {
+      newEl.tableType = tableType as any;
+    }
     onAddElement(newEl);
   }, [offsetX, offsetY, scale, paperW, paperH, onAddElement]);
 
@@ -494,30 +607,52 @@ const DocumentCanvas: React.FC<DocumentCanvasProps> = ({
             />
           )}
           {/* Elements */}
-          {page?.elements.map(el => (
-            <Group key={el.id} x={offsetX} y={offsetY} scaleX={scale} scaleY={scale} clipX={0} clipY={0} clipWidth={paperW} clipHeight={paperH}>
-              <CanvasElement
-                el={el}
-                isSelected={selectedIds.includes(el.id)}
-                previewMode={previewMode}
-                previewData={previewData}
-                onSelect={(e) => {
-                  e.cancelBubble = true;
-                  if (e.evt.shiftKey) {
-                    if (selectedIds.includes(el.id)) {
-                      onSelectElement(selectedIds.filter(id => id !== el.id));
+          {(() => {
+            const uniqueElements: typeof page.elements = [];
+            let hasKeyValueTable = false;
+            for (const el of page?.elements || []) {
+              if (el.type === 'table' && el.tableType === 'keyvalue') {
+                if (hasKeyValueTable) continue;
+                hasKeyValueTable = true;
+              }
+              const isDuplicate = uniqueElements.some(other => {
+                if (el.type === 'table') {
+                  return other.type === 'table' &&
+                    Math.abs(other.x - el.x) < 40 &&
+                    Math.abs(other.y - el.y) < 40;
+                }
+                return other.type === el.type &&
+                  Math.abs(other.x - el.x) < 10 &&
+                  Math.abs(other.y - el.y) < 10;
+              });
+              if (isDuplicate) continue;
+              uniqueElements.push(el);
+            }
+            return uniqueElements.map(el => (
+              <Group key={el.id} x={offsetX} y={offsetY} scaleX={scale} scaleY={scale} clipX={0} clipY={0} clipWidth={paperW} clipHeight={paperH}>
+                <CanvasElement
+                  el={el}
+                  isSelected={selectedIds.includes(el.id)}
+                  previewMode={previewMode}
+                  previewData={previewData}
+                  onSelect={(e) => {
+                    e.cancelBubble = true;
+                    if (e.evt.shiftKey) {
+                      if (selectedIds.includes(el.id)) {
+                        onSelectElement(selectedIds.filter(id => id !== el.id));
+                      } else {
+                        onSelectElement([...selectedIds, el.id]);
+                      }
                     } else {
-                      onSelectElement([...selectedIds, el.id]);
+                      onSelectElement([el.id]);
                     }
-                  } else {
-                    onSelectElement([el.id]);
-                  }
-                }}
-                onChange={(updates) => onUpdateElement(el.id, updates)}
-                scale={scale}
-              />
-            </Group>
-          ))}
+                  }}
+                  onChange={(updates) => onUpdateElement(el.id, updates)}
+                  scale={scale}
+                />
+              </Group>
+            ));
+          })()}
           {/* Rulers */}
           {showRulers && (
             <>

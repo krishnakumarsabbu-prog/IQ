@@ -7,6 +7,7 @@ import {
   Droplets, Search, ChevronDown, ChevronRight, GripHorizontal
 } from 'lucide-react';
 import { COMPONENT_LIBRARY, ComponentLibraryItem, MongoField } from './types';
+import { documentLayoutService } from './documentLayoutService';
 
 const ICON_MAP: Record<string, React.FC<{ className?: string }>> = {
   Type, Variable, AlignLeft, FileText, Image, Building, PenLine,
@@ -21,6 +22,7 @@ interface LeftPanelProps {
   selectedIds: string[];
   documentTree: TreeNode[];
   onSelectElement: (id: string) => void;
+  onAddElement?: (el: any) => void;
 }
 
 export interface TreeNode {
@@ -37,6 +39,9 @@ function ComponentCard({ item }: { item: ComponentLibraryItem }) {
 
   const handleDragStart = (e: React.DragEvent) => {
     e.dataTransfer.setData('elementType', item.type);
+    if (item.label === 'Fields Table') {
+      e.dataTransfer.setData('tableType', 'keyvalue');
+    }
     e.dataTransfer.effectAllowed = 'copy';
   };
 
@@ -95,7 +100,7 @@ function TreeNodeItem({ node, depth, selectedIds, onSelect }: {
   );
 }
 
-const LeftPanel: React.FC<LeftPanelProps> = ({ mongoFields, selectedIds, documentTree, onSelectElement }) => {
+const LeftPanel: React.FC<LeftPanelProps> = ({ mongoFields, selectedIds, documentTree, onSelectElement, onAddElement }) => {
   const [activeTab, setActiveTab] = useState<'components' | 'fields' | 'tree'>('components');
   const [search, setSearch] = useState('');
   const [expandedCats, setExpandedCats] = useState<Record<string, boolean>>(
@@ -181,6 +186,22 @@ const LeftPanel: React.FC<LeftPanelProps> = ({ mongoFields, selectedIds, documen
             <p className="text-[10px] text-slate-400 dark:text-slate-500 mb-2 px-1">
               Drag fields onto canvas to bind data
             </p>
+            {onAddElement && (
+              <button
+                onClick={() => {
+                  const newEl = {
+                    ...documentLayoutService.createDefaultElement('table', 50, 100),
+                    tableType: 'keyvalue' as const,
+                    width: 500,
+                  };
+                  onAddElement(newEl);
+                }}
+                className="w-full mb-3 flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm hover:shadow transition-all"
+              >
+                <Table className="h-3.5 w-3.5" />
+                Add All Fields as Table
+              </button>
+            )}
             {filteredFields.map(field => (
               <div
                 key={field.id}

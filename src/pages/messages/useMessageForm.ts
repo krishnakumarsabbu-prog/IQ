@@ -79,6 +79,10 @@ export interface MessageFormState {
   previewDevice: 'desktop' | 'mobile';
   setPreviewDevice: (d: 'desktop' | 'mobile') => void;
 
+  // Active channels
+  activeChannels: string[];
+  setActiveChannels: (channels: string[]) => void;
+
   // Form engine (react-hook-form)
   register: ReturnType<typeof useForm>['register'];
   handleSubmit: ReturnType<typeof useForm>['handleSubmit'];
@@ -143,6 +147,9 @@ export function useMessageForm(): MessageFormState {
 
   // ── Preview ──
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'mobile'>('desktop');
+
+  // ── Channels ──
+  const [activeChannels, setActiveChannels] = useState<string[]>(['Email', 'SMS']);
 
   // ── React Hook Form ──
   const {
@@ -317,6 +324,7 @@ export function useMessageForm(): MessageFormState {
       priority: 'Medium',
       businessUnit: 'Retail Banking',
       newBranding: false,
+      channels: ['Email', 'SMS'],
     };
 
     const tempMsg: MessageInstance = {
@@ -341,6 +349,7 @@ export function useMessageForm(): MessageFormState {
       setActiveHelp({});
       setSelectedTemplateId('tmpl_welcome_email');
       await loadTemplate('tmpl_welcome_email');
+      setActiveChannels(['Email', 'SMS']);
       reset(saved.formValues);
       setMessages(prev => [saved, ...prev]);
     } catch (e) {
@@ -352,6 +361,7 @@ export function useMessageForm(): MessageFormState {
       setActiveHelp({});
       setSelectedTemplateId('tmpl_welcome_email');
       await loadTemplate('tmpl_welcome_email');
+      setActiveChannels(['Email', 'SMS']);
       reset(defaultFormValues);
     }
 
@@ -368,7 +378,16 @@ export function useMessageForm(): MessageFormState {
     setActiveHelp({});
     setSelectedTemplateId(msg.templateId || 'tmpl_welcome_email');
     loadTemplate(msg.templateId || 'tmpl_welcome_email');
-    reset(msg.formValues);
+    
+    const CHANNEL_ORDER = ['Email', 'SecureInbox', 'SMS', 'Push', 'WhatsApp'];
+    const loadedChannels = msg.channels || msg.formValues?.channels || ['Email'];
+    const sortedLoaded = [...loadedChannels].sort((a, b) => CHANNEL_ORDER.indexOf(a) - CHANNEL_ORDER.indexOf(b));
+    setActiveChannels(sortedLoaded);
+    
+    reset({
+      ...msg.formValues,
+      channels: sortedLoaded,
+    });
     setActiveMainTab('Requirements');
     setActiveSubTabId('tab_main');
     setView('create');
@@ -387,16 +406,20 @@ export function useMessageForm(): MessageFormState {
   }, []);
 
   const onSubmit = useCallback(async (data: any) => {
+    const activeCh = activeChannels;
     const newMsg: MessageInstance = {
       id: selectedMessage?.id,
       messageId: data.messageId || selectedMessage?.messageId || `MSG-${String(messages.length + 1).padStart(3, '0')}`,
       messageName: data.messageName || 'Unnamed Message',
       messageType: data.messageType || 'Shell',
-      channels: data.messageType === 'Shell' ? ['Email', 'SMS'] : ['Email'],
+      channels: activeCh,
       status: 'Active',
       lastModified: new Date().toISOString().split('T')[0],
       templateId: selectedTemplateId,
-      formValues: data,
+      formValues: {
+        ...data,
+        channels: activeCh,
+      },
       bookmarks,
       notes,
     };
@@ -417,7 +440,7 @@ export function useMessageForm(): MessageFormState {
     setNotes({});
     setActiveHelp({});
     setView('list');
-  }, [selectedMessage, messages.length, selectedTemplateId, bookmarks, notes]);
+  }, [selectedMessage, messages.length, selectedTemplateId, bookmarks, notes, activeChannels]);
 
   const onSubmitAsNew = useCallback(async (data: any) => {
     let finalMsgId = data.messageId || `MSG-${String(messages.length + 1).padStart(3, '0')}`;
@@ -426,11 +449,12 @@ export function useMessageForm(): MessageFormState {
       finalMsgId = `${finalMsgId}-COPY`;
     }
 
+    const activeCh = activeChannels;
     const newMsg: MessageInstance = {
       messageId: finalMsgId,
       messageName: data.messageName ? `${data.messageName} (Copy)` : 'Unnamed Message',
       messageType: data.messageType || 'Shell',
-      channels: data.messageType === 'Shell' ? ['Email', 'SMS'] : ['Email'],
+      channels: activeCh,
       status: 'Draft',
       lastModified: new Date().toISOString().split('T')[0],
       templateId: selectedTemplateId,
@@ -438,6 +462,7 @@ export function useMessageForm(): MessageFormState {
         ...data,
         messageId: finalMsgId,
         messageName: data.messageName ? `${data.messageName} (Copy)` : 'Unnamed Message',
+        channels: activeCh,
       },
       bookmarks: {},
       notes: {},
@@ -455,7 +480,7 @@ export function useMessageForm(): MessageFormState {
     setNotes({});
     setActiveHelp({});
     setView('list');
-  }, [messages, selectedTemplateId]);
+  }, [messages, selectedTemplateId, activeChannels]);
 
   // ── Rule engine ──
 
@@ -563,6 +588,7 @@ export function useMessageForm(): MessageFormState {
     newNoteText, setNewNoteText,
     activeHelp, handleToggleHelp,
     previewDevice, setPreviewDevice,
+    activeChannels, setActiveChannels,
     register, handleSubmit, control, formValues, setValue, errors, reset,
     getFieldState, getValidationRules, getTabBadgeCount,
     onSubmit, onSubmitAsNew,
