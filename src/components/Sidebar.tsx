@@ -1,13 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { usePermissions } from '../hooks/useRedux';
-import { 
-  Home, 
+import {
+  Home,
   Settings,
   ChevronLeft,
   ChevronRight,
   AlertTriangle,
-  FormInput
+  FormInput,
+  Layers,
+  LayoutTemplate,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -17,11 +21,11 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
   const { hasPermission } = usePermissions();
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const navItems = [
     { path: '/dashboard', label: 'Dashboard', icon: Home, permission: 'read' },
     { path: '/messages/new', label: 'Create Message (Dynamic)', icon: FormInput, permission: 'read' },
-    { path: '/settings', label: 'Settings', icon: Settings, permission: 'read' },
   ];
 
   const filteredNavItems = navItems.filter(item => hasPermission(item.permission));
@@ -93,6 +97,55 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
             {!isCollapsed && <span className="ml-3.5 truncate">{item.label}</span>}
           </NavLink>
         ))}
+
+        {/* Settings with sub-items */}
+        <div>
+          <button
+            onClick={() => setSettingsOpen(v => !v)}
+            className="w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900/50 hover:text-slate-900 dark:hover:text-slate-200"
+          >
+            <Settings className="h-5 w-5 flex-shrink-0" strokeWidth={1.8} />
+            {!isCollapsed && (
+              <>
+                <span className="ml-3.5 truncate flex-1 text-left">Settings</span>
+                {settingsOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </>
+            )}
+          </button>
+
+          {settingsOpen && !isCollapsed && (
+            <div className="ml-5 mt-1 space-y-0.5 border-l-2 border-slate-100 dark:border-slate-800 pl-3">
+              <NavLink
+                to="/settings"
+                end
+                className={({ isActive }) =>
+                  `flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-medium transition-all ${
+                    isActive
+                      ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950 shadow-sm'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900/50 hover:text-slate-900 dark:hover:text-slate-200'
+                  }`
+                }
+              >
+                <Layers className="h-4 w-4 flex-shrink-0" strokeWidth={1.8} />
+                <span>General Settings</span>
+              </NavLink>
+
+              <NavLink
+                to="/settings/document-designer"
+                className={({ isActive }) =>
+                  `flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-medium transition-all ${
+                    isActive
+                      ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/20'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400'
+                  }`
+                }
+              >
+                <LayoutTemplate className="h-4 w-4 flex-shrink-0" strokeWidth={1.8} />
+                <span>Document Layout Designer</span>
+              </NavLink>
+            </div>
+          )}
+        </div>
       </nav>
     </div>
   );

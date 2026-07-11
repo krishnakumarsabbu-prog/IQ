@@ -13,6 +13,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 
 import SettingsPage from './pages/settings/SettingsPage';
 import NewMessageDynamic from './pages/messages/NewMessageDynamic';
+import DocumentLayoutDesigner from './pages/documentDesigner/DocumentLayoutDesigner';
 
 const AppContent: React.FC = () => {
   const { isDarkMode } = useAppSelector(state => state.theme);
@@ -47,6 +48,9 @@ const AppContent: React.FC = () => {
 
           {/* Dynamic Message Creation Entry Form */}
           <Route path="/messages/new" element={<ProtectedRoute><NewMessageDynamic /></ProtectedRoute>} />
+
+          {/* Document Layout Designer */}
+          <Route path="/settings/document-designer" element={<ProtectedRoute><DocumentLayoutDesigner /></ProtectedRoute>} />
 
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>
