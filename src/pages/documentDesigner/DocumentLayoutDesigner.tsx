@@ -11,6 +11,7 @@ import { documentLayoutService } from './documentLayoutService';
 import { exportToDocx } from './exportDocx';
 import { exportToPdf } from './exportPdf';
 import { TreeNode } from './LeftPanel';
+import { importWordDocument } from './importWordDoc';
 import { 
   FileText, 
   Plus, 
@@ -23,14 +24,17 @@ import {
   MoreVertical, 
   Calendar, 
   User, 
-  Upload, 
   CheckCircle2, 
   FileEdit, 
   FileCheck, 
   Clock, 
   Trash2, 
   Copy,
-  ExternalLink
+  ExternalLink,
+  Loader2,
+  AlertCircle,
+  CheckCheck,
+  FileType2
 } from 'lucide-react';
 
 const PREVIEW_DATA: Record<string, string> = {
@@ -96,6 +100,11 @@ const DocumentLayoutDesigner: React.FC = () => {
   const [currentPageNum, setCurrentPageNum] = useState(1);
   const [itemsPerPage] = useState(10);
   const [showNewDocDropdown, setShowNewDocDropdown] = useState(false);
+
+  // Word import state
+  const [isImporting, setIsImporting] = useState(false);
+  const [importToast, setImportToast] = useState<{ type: 'success' | 'error' | 'warning'; message: string; detail?: string } | null>(null);
+  const importToastTimer = useRef<ReturnType<typeof setTimeout>>();
 
   const historyRef = useRef<HistoryEntry[]>([]);
   const historyPosRef = useRef(-1);
@@ -462,32 +471,79 @@ const DocumentLayoutDesigner: React.FC = () => {
     }
   }
 
-  async function handleImportTemplate(e: React.ChangeEvent<HTMLInputElement>) {
+  function showImportToast(type: 'success' | 'error' | 'warning', message: string, detail?: string) {
+    setImportToast({ type, message, detail });
+    if (importToastTimer.current) clearTimeout(importToastTimer.current);
+    importToastTimer.current = setTimeout(() => setImportToast(null), 6000);
+  }
+
+  async function handleImportWordDoc(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      try {
-        const layout = JSON.parse(event.target?.result as string) as DocumentTemplate;
-        if (!layout.name || !layout.pages) {
-          alert('Invalid template format. The JSON file must represent a valid document layout template.');
-          return;
+    e.target.value = '';
+
+    const ext = file.name.split('.').pop()?.toLowerCase();
+
+    // ── JSON template import (legacy) ──────────────────────────────────────
+    if (ext === 'json') {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        try {
+          const layout = JSON.parse(event.target?.result as string) as DocumentTemplate;
+          if (!layout.name || !layout.pages) {
+            showImportToast('error', 'Invalid template format', 'The JSON file must represent a valid AIQ document layout.');
+            return;
+          }
+          const toSave: DocumentTemplate = { ...layout, id: undefined, name: `${layout.name} (Imported)` };
+          await documentLayoutService.saveLayout(toSave);
+          const all = await documentLayoutService.getAllLayouts();
+          setTemplates(all);
+          showImportToast('success', 'Template imported!', `"${layout.name}" has been added as a new draft.`);
+        } catch {
+          showImportToast('error', 'Import failed', 'Could not parse the JSON file. Please check the file format.');
         }
-        const toSave: DocumentTemplate = {
-          ...layout,
-          id: undefined,
-          name: `${layout.name} (Imported)`,
-        };
-        await documentLayoutService.saveLayout(toSave);
+      };
+      reader.readAsText(file);
+      return;
+    }
+
+    // ── Word document import (.docx / .doc) ────────────────────────────────
+    if (ext === 'docx' || ext === 'doc') {
+      setIsImporting(true);
+      try {
+        const { template, warnings } = await importWordDocument(file);
+        const saved = await documentLayoutService.saveLayout(template);
         const all = await documentLayoutService.getAllLayouts();
         setTemplates(all);
-        alert('Document Layout template imported successfully!');
-      } catch (err) {
-        alert('Failed to parse the imported JSON file.');
+
+        if (warnings.length > 0) {
+          showImportToast(
+            'warning',
+            `"${template.name}" imported with ${warnings.length} note(s)`,
+            warnings.slice(0, 2).join(' | ')
+          );
+        } else {
+          const pageCount = template.pages.length;
+          const elemCount = template.pages.reduce((s, p) => s + p.elements.length, 0);
+          showImportToast(
+            'success',
+            `Word document imported successfully!`,
+            `"${saved.name}" · ${pageCount} page${pageCount !== 1 ? 's' : ''} · ${elemCount} elements`
+          );
+        }
+
+        // Auto-open the imported template for immediate editing
+        handleOpenTemplate(saved);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        showImportToast('error', 'Word import failed', msg);
+      } finally {
+        setIsImporting(false);
       }
-    };
-    reader.readAsText(file);
-    e.target.value = '';
+      return;
+    }
+
+    showImportToast('error', 'Unsupported file type', 'Please upload a .docx, .doc, or .json file.');
   }
 
   function handleAddPage() {
@@ -627,14 +683,53 @@ const DocumentLayoutDesigner: React.FC = () => {
             </div>
             
             <div className="flex items-center gap-3 relative">
-              {/* Hidden file input for import */}
+              {/* Hidden file input for import - accepts Word docs and JSON */}
               <input 
                 type="file" 
                 ref={fileInputRef} 
-                onChange={handleImportTemplate} 
-                accept=".json" 
+                onChange={handleImportWordDoc} 
+                accept=".docx,.doc,.json" 
                 className="hidden" 
               />
+
+              {/* Import Toast Notification */}
+              {importToast && (
+                <div
+                  className={`fixed bottom-6 right-6 z-50 max-w-sm w-full rounded-2xl shadow-2xl border flex items-start gap-3 p-4 transition-all animate-fade-in ${
+                    importToast.type === 'success'
+                      ? 'bg-emerald-50 dark:bg-emerald-950/80 border-emerald-200 dark:border-emerald-800'
+                      : importToast.type === 'warning'
+                      ? 'bg-amber-50 dark:bg-amber-950/80 border-amber-200 dark:border-amber-800'
+                      : 'bg-rose-50 dark:bg-rose-950/80 border-rose-200 dark:border-rose-800'
+                  }`}
+                >
+                  <div className={`mt-0.5 flex-shrink-0 ${
+                    importToast.type === 'success' ? 'text-emerald-600 dark:text-emerald-400'
+                    : importToast.type === 'warning' ? 'text-amber-600 dark:text-amber-400'
+                    : 'text-rose-600 dark:text-rose-400'
+                  }`}>
+                    {importToast.type === 'success' ? <CheckCheck className="h-5 w-5" /> :
+                     importToast.type === 'warning' ? <AlertCircle className="h-5 w-5" /> :
+                     <AlertCircle className="h-5 w-5" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm font-semibold ${
+                      importToast.type === 'success' ? 'text-emerald-800 dark:text-emerald-200'
+                      : importToast.type === 'warning' ? 'text-amber-800 dark:text-amber-200'
+                      : 'text-rose-800 dark:text-rose-200'
+                    }`}>{importToast.message}</p>
+                    {importToast.detail && (
+                      <p className="text-xs mt-0.5 text-slate-500 dark:text-slate-400 truncate">{importToast.detail}</p>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => setImportToast(null)}
+                    className="text-slate-400 hover:text-slate-600 flex-shrink-0"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
 
               {/* New Document Button with Dropdown */}
               <div className="flex items-center" ref={dropdownRef}>
@@ -686,13 +781,24 @@ const DocumentLayoutDesigner: React.FC = () => {
                 )}
               </div>
 
-              {/* Import Document Button */}
+              {/* Import Word Document Button */}
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium rounded-xl transition-all shadow-sm"
+                disabled={isImporting}
+                className="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 hover:border-indigo-400 dark:hover:border-indigo-600 text-slate-700 dark:text-slate-200 font-medium rounded-xl transition-all shadow-sm disabled:opacity-60 disabled:cursor-not-allowed group"
+                title="Import a Word document (.docx) or AIQ template (.json)"
               >
-                <Upload className="h-4 w-4 text-slate-500" />
-                Import Document
+                {isImporting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 text-indigo-500 animate-spin" />
+                    <span className="text-indigo-600 dark:text-indigo-400">Analyzing Word Doc...</span>
+                  </>
+                ) : (
+                  <>
+                    <FileType2 className="h-4 w-4 text-indigo-500 group-hover:text-indigo-600" />
+                    <span>Import Word / JSON</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

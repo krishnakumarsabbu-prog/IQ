@@ -4,6 +4,134 @@ import type Konva from 'konva';
 import { DocumentElement, DocumentTemplate, PAPER_SIZES } from './types';
 import { documentLayoutService } from './documentLayoutService';
 
+// ── useKonvaImage: loads any URL (including base64 data URIs) into an HTMLImageElement
+function useKonvaImage(src?: string): HTMLImageElement | null {
+  const [img, setImg] = useState<HTMLImageElement | null>(null);
+  useEffect(() => {
+    if (!src) { setImg(null); return; }
+    const image = new window.Image();
+    image.onload = () => setImg(image);
+    image.onerror = () => setImg(null);
+    image.src = src;
+  }, [src]);
+  return img;
+}
+
+// ── ImageElement: renders actual image (base64 or URL) on canvas ───────────────
+function ImageElement({ el, commonProps, shapeRef, handleTransformEnd }: {
+  el: DocumentElement;
+  commonProps: Record<string, unknown>;
+  shapeRef: React.RefObject<Konva.Group | null>;
+  handleTransformEnd: (e: Konva.KonvaEventObject<Event>) => void;
+}) {
+  const img = useKonvaImage(el.imageUrl);
+  return (
+    <Group ref={shapeRef} {...(commonProps as Parameters<typeof Group>[0])} onTransformEnd={handleTransformEnd}>
+      {img ? (
+        <KonvaImage image={img} width={el.width} height={el.height} />
+      ) : (
+        <>
+          <Rect width={el.width} height={el.height} fill="#f1f5f9" stroke="#e2e8f0" strokeWidth={1} />
+          <Text
+            x={0} y={0} width={el.width} height={el.height}
+            text={el.type === 'logo' ? 'LOGO' : el.imageUrl ? 'Loading image...' : 'IMAGE'}
+            align="center" verticalAlign="middle"
+            fontSize={12} fill="#94a3b8" fontStyle="bold"
+          />
+        </>
+      )}
+    </Group>
+  );
+}
+
+// ── GridTableElement: renders imported table with all rows ─────────────────────
+function GridTableElement({ el, commonProps, shapeRef, handleTransformEnd, previewMode, getValue }: {
+  el: DocumentElement;
+  commonProps: Record<string, unknown>;
+  shapeRef: React.RefObject<Konva.Group | null>;
+  handleTransformEnd: (e: Konva.KonvaEventObject<Event>) => void;
+  previewMode: boolean;
+  getValue: (key: string) => string;
+}) {
+  // Parse stored row data if available (imported from Word)
+  let tableHeaders: string[] = [];
+  let tableRows: string[][] = [];
+  if (el.content) {
+    try {
+      const parsed = JSON.parse(el.content) as { headers: string[]; rows: string[][] };
+      tableHeaders = parsed.headers || [];
+      tableRows    = parsed.rows || [];
+    } catch { /* not JSON — fallback to columns */ }
+  }
+
+  const columns  = el.columns || [];
+  const colCount = Math.max(columns.length, tableHeaders.length, 1);
+  const colW     = el.width / colCount;
+  const HEADER_H = 28;
+  const ROW_H    = 24;
+
+  // Decide which headers to show: prefer parsed HTML headers, fall back to column metadata
+  const displayHeaders = tableHeaders.length > 0 ? tableHeaders : columns.map(c => c.header);
+
+  // All visible rows (combine parsed data rows + column binding placeholders)
+  const displayRows: string[][] = tableRows.length > 0
+    ? tableRows
+    : [columns.map(c => previewMode ? getValue(c.binding || '') : `{{${c.binding}}}`)];
+
+  // How many rows fit in the element height
+  const maxVisibleRows = Math.max(1, Math.floor((el.height - HEADER_H) / ROW_H));
+  const visibleRows    = displayRows.slice(0, maxVisibleRows);
+
+  return (
+    <Group ref={shapeRef} {...(commonProps as Parameters<typeof Group>[0])} onTransformEnd={handleTransformEnd}>
+      {/* Table background */}
+      <Rect width={el.width} height={el.height} fill="#fff" stroke="#94a3b8" strokeWidth={1} />
+      {/* Header row background */}
+      <Rect x={0} y={0} width={el.width} height={HEADER_H} fill="#f1f5f9" />
+      {/* Header cells */}
+      {displayHeaders.map((hdr, ci) => {
+        const cx = ci * colW;
+        return (
+          <Group key={`h${ci}`}>
+            {ci > 0 && <Line points={[cx, 0, cx, el.height]} stroke="#94a3b8" strokeWidth={1} />}
+            <Text x={cx + 4} y={7} width={colW - 8} text={hdr || `Col ${ci + 1}`}
+              fontSize={10} fill="#334155" fontStyle="bold" />
+          </Group>
+        );
+      })}
+      {/* Header bottom border */}
+      <Line points={[0, HEADER_H, el.width, HEADER_H]} stroke="#94a3b8" strokeWidth={1} />
+      {/* Data rows */}
+      {visibleRows.map((row, ri) => {
+        const ry = HEADER_H + ri * ROW_H;
+        const isEven = ri % 2 === 1;
+        return (
+          <Group key={`r${ri}`}>
+            {isEven && <Rect x={0} y={ry} width={el.width} height={ROW_H} fill="#f8fafc" />}
+            <Line points={[0, ry + ROW_H, el.width, ry + ROW_H]} stroke="#e2e8f0" strokeWidth={1} />
+            {Array.from({ length: colCount }).map((_, ci) => {
+              const cx = ci * colW;
+              return (
+                <Group key={`c${ci}`}>
+                  {ci > 0 && <Line points={[cx, ry, cx, ry + ROW_H]} stroke="#e2e8f0" strokeWidth={1} />}
+                  <Text x={cx + 4} y={ry + 6} width={colW - 8}
+                    text={row[ci] ?? ''} fontSize={10} fill="#1e293b" wrap="none" />
+                </Group>
+              );
+            })}
+          </Group>
+        );
+      })}
+      {/* "more rows" hint */}
+      {displayRows.length > maxVisibleRows && (
+        <Text x={4} y={el.height - 14}
+          text={`+ ${displayRows.length - maxVisibleRows} more rows (resize to view)`}
+          fontSize={8} fill="#64748b" fontStyle="italic" />
+      )}
+    </Group>
+  );
+}
+
 interface DocumentCanvasProps {
   template: DocumentTemplate;
   selectedIds: string[];
@@ -283,21 +411,7 @@ function CanvasElement({
 
       case 'logo':
       case 'image':
-        return (
-          <Group ref={shapeRef} {...commonProps} onTransformEnd={handleTransformEnd}>
-            <Rect width={el.width} height={el.height} fill="#f1f5f9" stroke="#e2e8f0" strokeWidth={1} />
-            <Text
-              x={0} y={0}
-              width={el.width} height={el.height}
-              text={el.type === 'logo' ? 'LOGO' : 'IMAGE'}
-              align="center"
-              verticalAlign="middle"
-              fontSize={12}
-              fill="#94a3b8"
-              fontStyle="bold"
-            />
-          </Group>
-        );
+        return <ImageElement el={el} commonProps={commonProps} shapeRef={shapeRef} handleTransformEnd={handleTransformEnd} />;
 
       case 'qrcode':
         return (
@@ -397,28 +511,7 @@ function CanvasElement({
           );
         }
 
-        return (
-          <Group ref={shapeRef} {...commonProps} onTransformEnd={handleTransformEnd}>
-            <Rect width={el.width} height={el.height} fill="#fff" stroke="#e2e8f0" strokeWidth={1} />
-            {/* Header row */}
-            <Rect x={0} y={0} width={el.width} height={28} fill="#f1f5f9" />
-            {(el.columns || []).map((col, i) => {
-              const colW = col.width || el.width / (el.columns?.length || 1);
-              const colX = (el.columns || []).slice(0, i).reduce((s, c) => s + (c.width || 80), 0);
-              return (
-                <Group key={col.id}>
-                  <Line points={[colX, 0, colX, el.height]} stroke="#e2e8f0" strokeWidth={1} />
-                  <Text x={colX + 4} y={6} width={colW - 8} text={col.header} fontSize={10} fill="#475569" fontStyle="bold" />
-                  <Text x={colX + 4} y={36} width={colW - 8} text={previewMode ? getValue(col.binding || '') : `{{${col.binding}}}`} fontSize={10} fill="#94a3b8" fontStyle="italic" />
-                </Group>
-              );
-            })}
-            <Line points={[0, 28, el.width, 28]} stroke="#e2e8f0" strokeWidth={1} />
-            {el.arrayBinding && (
-              <Text x={4} y={el.height - 18} text={`Repeats: ${el.arrayBinding}[]`} fontSize={8} fill="#3b82f6" fontStyle="italic" />
-            )}
-          </Group>
-        );
+        return <GridTableElement el={el} commonProps={commonProps} shapeRef={shapeRef} handleTransformEnd={handleTransformEnd} previewMode={previewMode} getValue={getValue} />;
 
       default:
         return (
@@ -606,53 +699,31 @@ const DocumentCanvas: React.FC<DocumentCanvasProps> = ({
               listening={false}
             />
           )}
-          {/* Elements */}
-          {(() => {
-            const uniqueElements: typeof page.elements = [];
-            let hasKeyValueTable = false;
-            for (const el of page?.elements || []) {
-              if (el.type === 'table' && el.tableType === 'keyvalue') {
-                if (hasKeyValueTable) continue;
-                hasKeyValueTable = true;
-              }
-              const isDuplicate = uniqueElements.some(other => {
-                if (el.type === 'table') {
-                  return other.type === 'table' &&
-                    Math.abs(other.x - el.x) < 40 &&
-                    Math.abs(other.y - el.y) < 40;
-                }
-                return other.type === el.type &&
-                  Math.abs(other.x - el.x) < 10 &&
-                  Math.abs(other.y - el.y) < 10;
-              });
-              if (isDuplicate) continue;
-              uniqueElements.push(el);
-            }
-            return uniqueElements.map(el => (
-              <Group key={el.id} x={offsetX} y={offsetY} scaleX={scale} scaleY={scale} clipX={0} clipY={0} clipWidth={paperW} clipHeight={paperH}>
-                <CanvasElement
-                  el={el}
-                  isSelected={selectedIds.includes(el.id)}
-                  previewMode={previewMode}
-                  previewData={previewData}
-                  onSelect={(e) => {
-                    e.cancelBubble = true;
-                    if (e.evt.shiftKey) {
-                      if (selectedIds.includes(el.id)) {
-                        onSelectElement(selectedIds.filter(id => id !== el.id));
-                      } else {
-                        onSelectElement([...selectedIds, el.id]);
-                      }
+          {/* Elements — render all, no duplicate suppression */}
+          {(page?.elements || []).map(el => (
+            <Group key={el.id} x={offsetX} y={offsetY} scaleX={scale} scaleY={scale} clipX={0} clipY={0} clipWidth={paperW} clipHeight={paperH}>
+              <CanvasElement
+                el={el}
+                isSelected={selectedIds.includes(el.id)}
+                previewMode={previewMode}
+                previewData={previewData}
+                onSelect={(e) => {
+                  e.cancelBubble = true;
+                  if (e.evt.shiftKey) {
+                    if (selectedIds.includes(el.id)) {
+                      onSelectElement(selectedIds.filter(id => id !== el.id));
                     } else {
-                      onSelectElement([el.id]);
+                      onSelectElement([...selectedIds, el.id]);
                     }
-                  }}
-                  onChange={(updates) => onUpdateElement(el.id, updates)}
-                  scale={scale}
-                />
-              </Group>
-            ));
-          })()}
+                  } else {
+                    onSelectElement([el.id]);
+                  }
+                }}
+                onChange={(updates) => onUpdateElement(el.id, updates)}
+                scale={scale}
+              />
+            </Group>
+          ))}
           {/* Rulers */}
           {showRulers && (
             <>
